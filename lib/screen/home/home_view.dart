@@ -38,36 +38,55 @@ class _HomeViewState extends State<HomeView> {
   TextEditingController _emailController = TextEditingController();
   TextEditingController _genderController = TextEditingController();
 
-  // Future<void> fetchUserData() async {
-  //   try {
-  //     // Get the current user's ID
-  //     final userId = FirebaseAuth.instance.currentUser!.uid;
-  //
-  //     // Fetch the user's document from Firestore
-  //     final userDoc = await FirebaseFirestore.instance
-  //         .collection('users')
-  //         .doc(userId)
-  //         .get();
-  //
-  //     if (userDoc.exists) {
-  //       // Extract and set user data to the respective TextEditingController
-  //       setState(() {
-  //         _emailController.text = userDoc['email'];
-  //         _firstnameController.text = userDoc['fname'];
-  //         _lastnameController.text = userDoc['lname'];
-  //         _genderController.text = userDoc['gender'];
-  //         txtHeight.text = userDoc['height'];
-  //         txtWeight.text = userDoc['weight'];
-  //       });
-  //       print("This is the current user id: ${_emailController}");
-  //
-  //     } else {
-  //       print("Data not exist");
-  //     }
-  //   } catch (e) {
-  //     print("Error, please check: ${e}");
-  //   }
-  // }
+
+  @override
+  void initState() {
+    super.initState();
+    print('${_emailController}');
+    print('${_firstnameController}');
+    print('${_lastnameController}');
+    fetchUserData();
+  }
+
+  Future<void> fetchUserData() async {
+    try {
+      // Get the current user's ID
+      final userId = FirebaseAuth.instance.currentUser!.uid;
+
+      // Fetch the user's document from Firestore
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      if (userDoc.exists) {
+        // Extract and set user data to the respective TextEditingController
+        setState(() {
+          _emailController.text = userDoc['email'];
+          _firstnameController.text = userDoc['fname'];
+          _lastnameController.text = userDoc['lname'];
+          _genderController.text = userDoc['gender'];
+          txtHeight.text = userDoc['height'];
+          txtWeight.text = userDoc['weight'];
+        });
+        print("This is the current user email: ${userDoc['email']}");
+        print("This is the current user name: ${userDoc['fname']}");
+        print("This is the current user lname: ${userDoc['lname']}");
+        print("This is the current user gender: ${userDoc['gender']}");
+
+      } else {
+        print("Data not exist");
+      }
+    } catch (e) {
+      print("Error, please check: ${e}");
+    }
+  }
+
+  void logout(){
+    // get auth service
+    final _auth = AuthService();
+    _auth.signOut();
+  }
   List lastWorkoutArr = [
     {
       "name": "Full Body Workout",
@@ -136,30 +155,6 @@ class _HomeViewState extends State<HomeView> {
   ];
 
 
-  @override
-  void initState() {
-    super.initState();
-    print('${_emailController}');
-    print('${_firstnameController}');
-    print('${_lastnameController}');
-    userDataFuture = fetchUserData();
-  }
-
-  Future<DocumentSnapshot<Map<String, dynamic>>> fetchUserData() async {
-    try {
-      // Get the current user's ID
-      final userId = FirebaseAuth.instance.currentUser!.uid;
-
-      // Fetch the user's document from Firestore
-      return await FirebaseFirestore.instance
-          .collection('users')
-          .doc(userId)
-          .get();
-    } catch (e) {
-      print("Error fetching user data: $e");
-      throw e;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {

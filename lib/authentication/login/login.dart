@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/common/common_widget/round_textfield.dart';
+import 'package:diet_app/database/auth_service.dart';
 import 'package:diet_app/screen/home/home_view.dart';
 import 'package:diet_app/screen/main_tab/main_tab_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,7 +13,8 @@ import '../../screen/on_boarding/on_boarding_view.dart';
 import '../complete_profile_view.dart';
 
 class LoginView extends StatefulWidget {
-  const LoginView({Key? key}) : super(key: key);
+  final void Function()? onTap;
+  const LoginView({Key? key, this.onTap}) : super(key: key);
 
   @override
   State<LoginView> createState() => _LoginViewState();
@@ -25,38 +27,28 @@ class _LoginViewState extends State<LoginView> {
   bool isPasswordVisible = false;
 
   // login method:
-  void userLogin() async {
-    // show loading circle
-    showDialog(
-      context: context,
-      builder: (context) {
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
-      },
-    );
+  void userLogin(BuildContext context) async {
+    // auth service
+    final authService = AuthService();
 
-    // try to login
+    // try login
     try {
-      UserCredential userCredential =
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
+      await authService.signInWithEmailPassword(
+          _emailController.text,
+          _passwordController.text);
 
       // Fetch user role from Firestore
       DocumentSnapshot userDoc = await FirebaseFirestore.instance
           .collection('users')
-          .doc(userCredential.user!.uid)
+          .doc(FirebaseAuth.instance.currentUser!.uid)
           .get();
 
-      if (userDoc.exists){
+      if (userDoc.exists) {
         final SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString('email', _emailController.text.trim());
+        await prefs.setString(
+          'email', _emailController.text.trim(),
+        );
       }
-
-      // Close the loading dialog
-      Navigator.of(context).pop();
 
       // Navigate to MainTabView after successfully login
       Navigator.pushReplacement(
@@ -66,24 +58,13 @@ class _LoginViewState extends State<LoginView> {
         ),
       );
     } catch (e) {
-      // Close the loading dialog
-      Navigator.of(context).pop();
-
-      if (e is FirebaseAuthException) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Firebase Auth Error: ${e.message}"),
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("General Error: ${e.toString()}"),
-          ),
-        );
-      }
-
-      showErrorMessage("Login Failed. Check your credentials");
+      // show error message
+      showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(e.toString()),
+          )
+      );
     }
   }
 
@@ -151,7 +132,8 @@ class _LoginViewState extends State<LoginView> {
                 SizedBox(
                   height: media.width * 0.04,
                 ),
-                const RoundTextField(
+                RoundTextField(
+                  controller: _emailController,
                   hitText: "Email",
                   icon: "assets/img/email.png",
                   keyboardType: TextInputType.emailAddress,
@@ -161,6 +143,7 @@ class _LoginViewState extends State<LoginView> {
                   height: media.width * 0.04,
                 ),
                 RoundTextField(
+                  controller: _passwordController,
                   hitText: "Password",
                   icon: "assets/img/lock.png",
                   obscureText: true,
@@ -197,7 +180,7 @@ class _LoginViewState extends State<LoginView> {
                 const Spacer(),
                 RoundButton(
                   title: "Login",
-                  onPressed: userLogin,
+                  onPressed: () => userLogin(context), // Pass the context here
                 ),
                 SizedBox(
                   height: media.width * 0.04,

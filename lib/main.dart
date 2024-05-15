@@ -44,8 +44,8 @@ class MyApp extends StatelessWidget {
         fontFamily: "Poppins"
       ),
 
-      home:  const MainTabView(),
-      //home:  const MealPlanView(),
+      //home:  const MainTabView(),
+      home:  const StartedView(),
        //body: FeedScreen(currentUserId: '')
 
     );

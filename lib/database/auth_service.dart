@@ -11,21 +11,34 @@ class AuthService extends ChangeNotifier{
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Sign In
-  Future<User?> signInWithEmailandPassword(
-      BuildContext context, String email, String password) async {
+  Future<UserCredential> signInWithEmailPassword(String email, password) async {
     try {
-      // sign in
-      final UserCredential userCredential =
-      await _auth.signInWithEmailAndPassword(
+      UserCredential userCredential = await _auth.signInWithEmailAndPassword(
           email: email,
-          password: password);
-
-      return userCredential.user;
-
+          password: password
+      );
+      return userCredential;
     } on FirebaseAuthException catch (e){
       throw Exception(e.code);
     }
   }
+
+
+  // Future<User?> signInWithEmailandPassword(
+  //     BuildContext context, String email, String password) async {
+  //   try {
+  //     // sign in
+  //     final UserCredential userCredential =
+  //     await _auth.signInWithEmailAndPassword(
+  //         email: email,
+  //         password: password);
+  //
+  //     return userCredential.user;
+  //
+  //   } on FirebaseAuthException catch (e){
+  //     throw Exception(e.code);
+  //   }
+  // }
 
   void handleLoginSuccess(BuildContext context) async {
     Navigator.push(
@@ -44,7 +57,25 @@ class AuthService extends ChangeNotifier{
     }
   }
 
-  // Register user
+  // // Register user
+  // Future<UserCredential> signUpWithEmailPassword(
+  //     String email,
+  //     String password,
+  //     String fname,
+  //     String lname,
+  //     String weight,
+  //     String height) async {
+  //   try {
+  //     UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
+  //         email: email,
+  //         password: password);
+  //     return userCredential;
+  //   } on FirebaseAuthException catch (e){
+  //     throw Exception(e.code);
+  //   }
+  // }
+
+
   Future<User?> registerUserWithEmailandPassword(String name, String email, String password, double weight, int height) async {
     try {
       // check if all required fields are provided
@@ -77,6 +108,6 @@ class AuthService extends ChangeNotifier{
   }
 
   Future<void> signOut() async {
-    return await FirebaseAuth.instance.signOut();
+    return await _auth.signOut();
   }
 }

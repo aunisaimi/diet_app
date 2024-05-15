@@ -1,6 +1,7 @@
 import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/screen/workout_tracker/exercise_step_detail.dart';
+import 'package:diet_app/screen/workout_tracker/workout_detail_view.dart';
 import 'package:flutter/material.dart';
 
 class WhatTrainRow extends StatelessWidget {
@@ -55,19 +56,22 @@ class WhatTrainRow extends StatelessWidget {
                       width: 100,
                       height: 30,
                       child: RoundButton(
-                          title: "View More",
-                          fontSize: 10,
-                          type: RoundButtonType.textGradient,
-                          elevation:0.05,
-                          fontWeight: FontWeight.w400,
-                          onPressed: () {
-                            // Navigator.push(context, MaterialPageRoute(
-                            //     builder:(context) => ExercisesStepDetails(
-                            //         eObj: wObj,
-                            //         image: wObj["image"].toString(),
-                            //         duration: wObj["duration"])));
-                          }),
+                        title: "View More",
+                        fontSize: 10,
+                        type: RoundButtonType.textGradient,
+                        elevation: 0.05,
+                        fontWeight: FontWeight.w400,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => WorkoutDetailView(dObj: wObj),
+                            ),
+                          );
+                        },
+                      ),
                     )
+
                   ],
                 ),
               ),

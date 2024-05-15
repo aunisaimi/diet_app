@@ -1,30 +1,15 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 class StepModel {
-  final String id; // Added id field to store document id
-  final String step;
+  final String id;
+  final String steps;
   final String description;
 
-  StepModel(this.description, {required this.id, required this.step});
+  StepModel({required this.id, required this.description, required this.steps});
 
-  factory StepModel.fromMap(String step,String description, String id) {
+  factory StepModel.fromMap(String id, Map<String, dynamic> data) {
     return StepModel(
-        description,
-        id: id,
-        step: step);
+      id:id,
+      steps:data['steps'] as String,
+      description: data['description'] as String,
+    );
   }
-
-// Optional: Uncomment the following methods if needed
-
-// factory StepModel.fromMap(Map<String, dynamic> map) {
-//   return StepModel(
-//     step: map['step'] ?? '',
-//   );
-// }
-
-// Map<String, dynamic> toMap() {
-//   return {
-//     'step': step,
-//   };
-// }
 }

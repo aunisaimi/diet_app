@@ -6,15 +6,15 @@ import 'package:flutter/material.dart';
 class StepDetailRow extends StatelessWidget {
   final StepModel sObj;
   final bool isLast;
+
   const StepDetailRow({
     Key? key,
     required this.sObj,
-    this.isLast = false})
-      : super(key: key);
+    this.isLast = false,
+  }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -33,7 +33,6 @@ class StepDetailRow extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Container(
-
               width: 20,
               height: 20,
               decoration: BoxDecoration(
@@ -42,45 +41,42 @@ class StepDetailRow extends StatelessWidget {
               ),
               alignment: Alignment.center,
               child: Container(
-
                 width: 18,
                 height: 18,
                 decoration: BoxDecoration(
-                  border: Border.all(
-                      color: TColor.white,
-                      width: 3
-                  ),
+                  border: Border.all(color: TColor.white, width: 3),
                   borderRadius: BorderRadius.circular(9),
-                ),) ,
+                ),
+              ),
             ),
             if (!isLast)
               DottedDashedLine(
-                  height: 80,
-                  width: 0,
-                  dashColor: TColor.secondaryColor1,
-                  axis: Axis.vertical)
+                height: 80,
+                width: 0,
+                dashColor: TColor.secondaryColor1,
+                axis: Axis.vertical,
+              )
           ],
         ),
-        const SizedBox(
-          width: 10,
-        ),
+        const SizedBox(width: 10),
         Expanded(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                sObj.step,
+                sObj.steps, // Display the steps
                 style: TextStyle(
                   color: TColor.black,
                   fontSize: 14,
                 ),
               ),
               Text(
-                'details',
+                sObj.description, // Display the description
                 style: TextStyle(
-                    color: TColor.gray,
-                    fontSize: 12),
+                  color: TColor.gray,
+                  fontSize: 12,
+                ),
               ),
             ],
           ),

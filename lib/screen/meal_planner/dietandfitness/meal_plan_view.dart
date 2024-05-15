@@ -15,6 +15,13 @@ class _MealPlanViewState extends State<MealPlanView> {
   String selectedCategory = 'Breakfast';
   TextEditingController searchController = TextEditingController();
 
+  Map<String, Map<String, dynamic>> selectedMeals = {
+    "Breakfast": {},
+    "Lunch": {},
+    "Snack": {},
+    "Dinner": {},
+  };
+
   List<Map<String, dynamic>> mealArr = [
     {
       "category": "Breakfast",
@@ -127,11 +134,20 @@ class _MealPlanViewState extends State<MealPlanView> {
   ];
 
   List<Map<String, dynamic>> get filteredMeals {
-    return mealArr
-        .where((meal) =>
+    return mealArr.where((meal) =>
     meal["category"] == selectedCategory &&
         meal["title"].toLowerCase().contains(searchText.toLowerCase()))
         .toList();
+  }
+
+  int get totalCalories {
+    int total = 0;
+    selectedMeals.forEach((key, meal) {
+     if (meal.isNotEmpty){
+       total += meal["calories"] as int;
+     }
+    });
+    return total;
   }
 
   @override
@@ -166,7 +182,7 @@ class _MealPlanViewState extends State<MealPlanView> {
             decoration: BoxDecoration(
               color: TColor.white,
               boxShadow: [
-                BoxShadow(
+                const BoxShadow(
                   color: Colors.black26,
                   blurRadius: 4,
                   offset: Offset(0, 2),
@@ -235,12 +251,12 @@ class _MealPlanViewState extends State<MealPlanView> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.symmetric(horizontal: 8,vertical: 15),
             child: TextField(
               controller: searchController,
               decoration: InputDecoration(
                 labelText: 'Search',
-                prefixIcon: Icon(Icons.search),
+                prefixIcon: const Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -252,69 +268,96 @@ class _MealPlanViewState extends State<MealPlanView> {
               },
             ),
           ),
+
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Text(
+              "Total calories: $totalCalories kcal",
+              style: TextStyle(
+                color: TColor.black,
+                fontSize: 20,
+                fontWeight: FontWeight.w700),
+            ),
+          ),
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.symmetric(horizontal: 20),
               itemCount: filteredMeals.length,
               itemBuilder: (context, index) {
                 var meal = filteredMeals[index];
-                return Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  decoration: const BoxDecoration(color: Colors.white),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.asset(
-                          meal["image"].toString(),
-                          width: media.width,
-                          height: media.width * 0.55,
-                          fit: BoxFit.cover,
+                bool isSelected = selectedMeals[selectedCategory]!["name"] == meal["name"];
+                return GestureDetector(
+                  onTap: (){
+                    setState(() {
+                      if(isSelected){
+                        selectedMeals[selectedCategory] = {};
+                      } else {
+                        selectedMeals[selectedCategory] = meal;
+                      }
+                    });
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration:  BoxDecoration(
+                        color: isSelected
+                            ? Colors.green.shade100
+                            : Colors.white
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.asset(
+                            meal["image"].toString(),
+                            width: media.width,
+                            height: media.width * 0.55,
+                            fit: BoxFit.cover,
+                          ),
                         ),
-                      ),
-                      Text(
-                        meal["name"],
-                        style: TextStyle(
-                          color: TColor.black,
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
+                        Text(
+                          meal["name"],
+                          style: TextStyle(
+                            color: TColor.black,
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
-                      ),
-                      Text(
-                        meal["title"],
-                        style: TextStyle(
-                          color: TColor.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                        Text(
+                          meal["title"],
+                          style: TextStyle(
+                            color: TColor.black,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        "Calories: ${meal["calories"]} kcal",
-                        style: TextStyle(
-                          color: TColor.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                        const SizedBox(height: 8),
+                        Text(
+                          "Calories: ${meal["calories"]} kcal",
+                          style: TextStyle(
+                            color: TColor.black,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                      Text(
-                        "Fat: ${meal["fat"]} g",
-                        style: TextStyle(
-                          color: TColor.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                        Text(
+                          "Fat: ${meal["fat"]} g",
+                          style: TextStyle(
+                            color: TColor.black,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                      Text(
-                        "Recommended Amount: ${meal["recommendedAmount"]}",
-                        style: TextStyle(
-                          color: TColor.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
+                        Text(
+                          "Recommended Amount: ${meal["recommendedAmount"]}",
+                          style: TextStyle(
+                            color: TColor.black,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 );
               },
