@@ -1,11 +1,16 @@
 import 'package:diet_app/common/color_extension.dart';
+import 'package:diet_app/model/steps.dart';
 import 'package:dotted_dashed_line/dotted_dashed_line.dart';
 import 'package:flutter/material.dart';
 
 class StepDetailRow extends StatelessWidget {
-  final Map sObj;
+  final StepModel sObj;
   final bool isLast;
-  const StepDetailRow({super.key, required this.sObj, this.isLast = false});
+  const StepDetailRow({
+    Key? key,
+    required this.sObj,
+    this.isLast = false})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +21,7 @@ class StepDetailRow extends StatelessWidget {
         SizedBox(
           width: 25,
           child: Text(
-            sObj["no"].toString(),
+            sObj.id,
             style: TextStyle(
               color: TColor.secondaryColor1,
               fontSize: 14,
@@ -41,7 +46,10 @@ class StepDetailRow extends StatelessWidget {
                 width: 18,
                 height: 18,
                 decoration: BoxDecoration(
-                  border: Border.all(color: TColor.white, width: 3),
+                  border: Border.all(
+                      color: TColor.white,
+                      width: 3
+                  ),
                   borderRadius: BorderRadius.circular(9),
                 ),) ,
             ),
@@ -62,15 +70,17 @@ class StepDetailRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                sObj["title"].toString(),
+                sObj.step,
                 style: TextStyle(
                   color: TColor.black,
                   fontSize: 14,
                 ),
               ),
               Text(
-                sObj["detail"].toString(),
-                style: TextStyle(color: TColor.gray, fontSize: 12),
+                'details',
+                style: TextStyle(
+                    color: TColor.gray,
+                    fontSize: 12),
               ),
             ],
           ),

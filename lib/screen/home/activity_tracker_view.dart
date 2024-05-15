@@ -47,13 +47,15 @@ class _ActivityTrackerViewState extends State<ActivityTrackerView> {
             decoration: BoxDecoration(
                 color: TColor.lightGray,
                 borderRadius: BorderRadius.circular(10)),
-            child: Icon(Icons.arrow_back_ios_new_rounded)
+            child: const Icon(Icons.arrow_back_ios_new_rounded)
           ),
         ),
         title: Text(
           "Activity Tracker",
           style: TextStyle(
-              color: TColor.black, fontSize: 16, fontWeight: FontWeight.w700),
+              color: TColor.black,
+              fontSize: 16,
+              fontWeight: FontWeight.w700),
         ),
         actions: [
           InkWell(
@@ -192,7 +194,8 @@ class _ActivityTrackerViewState extends State<ActivityTrackerView> {
                           hint: Text(
                             "Weekly",
                             textAlign: TextAlign.center,
-                            style: TextStyle(color: TColor.white, fontSize: 12),
+                            style: TextStyle(
+                                color: TColor.white, fontSize: 12),
                           ),
                         ),
                       )),
@@ -430,11 +433,11 @@ class _ActivityTrackerViewState extends State<ActivityTrackerView> {
       x: x,
       barRods: [
         BarChartRodData(
-          toY: isTouched 
+          toY: isTouched
               ? y + 1
               : y,
           gradient: LinearGradient
-            (colors: barColor, 
+            (colors: barColor,
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter ),
           width: width,

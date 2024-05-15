@@ -11,12 +11,16 @@ class AuthService extends ChangeNotifier{
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   // Sign In
-  Future<User?> signInWithEmailandPassword(BuildContext context, String email, String password) async {
+  Future<User?> signInWithEmailandPassword(
+      BuildContext context, String email, String password) async {
     try {
       // sign in
-      final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
+      final UserCredential userCredential =
+      await _auth.signInWithEmailAndPassword(
           email: email,
           password: password);
+
+      return userCredential.user;
 
     } on FirebaseAuthException catch (e){
       throw Exception(e.code);

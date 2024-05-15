@@ -55,7 +55,9 @@ class _WhatYourGoalViewState extends State<WhatYourGoalView> {
                         end: Alignment.bottomRight),
                       borderRadius: BorderRadius.circular(25),
                     ),
-                    padding: EdgeInsets.symmetric(vertical: media.width * 0.1, horizontal: 25),
+                    padding: EdgeInsets.symmetric(
+                        vertical: media.width * 0.1,
+                        horizontal: 25),
                     alignment: Alignment.center,
                     child: FittedBox(
                       child: Column(
@@ -120,7 +122,9 @@ class _WhatYourGoalViewState extends State<WhatYourGoalView> {
                     Text(
                       "It will help us to choose a best\nprogram for you",
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: TColor.gray, fontSize: 12),
+                      style: TextStyle(
+                          color: TColor.gray,
+                          fontSize: 12),
                     ),
 
                     const Spacer(),

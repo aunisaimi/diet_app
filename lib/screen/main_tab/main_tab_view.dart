@@ -8,42 +8,44 @@ import '../home/home_view.dart';
 import '../profile/profile_view.dart';
 
 class MainTabView extends StatefulWidget {
-  const MainTabView({super.key});
+  const MainTabView({Key? key}) : super(key: key);
 
   @override
   State<MainTabView> createState() => _MainTabViewState();
 }
 
 class _MainTabViewState extends State<MainTabView> {
-  int selectTab = 0;
-  final PageStorageBucket pageBucket = PageStorageBucket();
-  Widget currentTab = const HomeView();
+  int _selectTab = 0;
+  late Widget _currentTab;
+
+  @override
+  void initState() {
+    _currentTab = HomeView();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: TColor.white,
-      body: PageStorage(
-        bucket: pageBucket,
-        child: currentTab,
-      ),
+      body: _currentTab,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: SizedBox(
         width: 70,
         height: 70,
         child: InkWell(
-          onTap: (){},
+          onTap: () {},
           child: Container(
             width: 65,
-            height:65,
+            height: 65,
             decoration: BoxDecoration(
-              gradient: LinearGradient(colors: TColor.primaryG),
+              gradient: LinearGradient(
+                  colors: TColor.primaryG),
               borderRadius: BorderRadius.circular(35),
               boxShadow: const [
-                BoxShadow(
-                  color: Colors.black12,
-                  blurRadius: 2)
-              ]),
+                BoxShadow(color: Colors.black12, blurRadius: 2),
+              ],
+            ),
             child: Icon(
               Icons.search,
               color: TColor.white,
@@ -56,12 +58,14 @@ class _MainTabViewState extends State<MainTabView> {
         child: Container(
           decoration: BoxDecoration(
             color: TColor.white,
-            boxShadow: const[
+            boxShadow: const [
               BoxShadow(
                 color: Colors.black12,
                 blurRadius: 2,
-                offset: Offset(0, -2)),
-            ]),
+                offset: Offset(0, -2),
+              ),
+            ],
+          ),
           height: kToolbarHeight,
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -69,49 +73,48 @@ class _MainTabViewState extends State<MainTabView> {
               TabButton(
                 icon: "assets/img/home_tab.png",
                 selectIcon: "assets/img/home_tab_select.png",
-                isActive: selectTab == 0,
-                onTap: (){
-                  selectTab = 0;
-                  currentTab = const HomeView();
-                  if(mounted){
-                    setState(() {});
-                  }
+                isActive: _selectTab == 0,
+                onTap: () {
+                  setState(() {
+                    _selectTab = 0;
+                    _currentTab = HomeView();
+                  });
                 },
               ),
               TabButton(
-                  icon: "assets/img/activity_tab.png",
-                  selectIcon:"assets/img/activity_tab_select.png" ,
-                  isActive: selectTab == 1,
-                  onTap: (){
-                    selectTab = 1;
-                    currentTab = const SelectView();
-                    if (mounted) {
-                      setState(() {});
-                    }
-                  }),
-              const  SizedBox(width: 40,),
+                icon: "assets/img/activity_tab.png",
+                selectIcon: "assets/img/activity_tab_select.png",
+                isActive: _selectTab == 1,
+                onTap: () {
+                  setState(() {
+                    _selectTab = 1;
+                    _currentTab = const SelectView();
+                  });
+                },
+              ),
+              const SizedBox(width: 40),
               TabButton(
-                  icon: "assets/img/camera_tab.png",
-                  selectIcon: "assets/img/camera_tab_select.png",
-                  isActive: selectTab == 2,
-                  onTap: () {
-                    selectTab = 2;
-                    currentTab = const PhotoProgressView();
-                    if (mounted) {
-                      setState(() {});
-                    }
-                  }),
+                icon: "assets/img/camera_tab.png",
+                selectIcon: "assets/img/camera_tab_select.png",
+                isActive: _selectTab == 2,
+                onTap: () {
+                  setState(() {
+                    _selectTab = 2;
+                    _currentTab = const PhotoProgressView();
+                  });
+                },
+              ),
               TabButton(
-                  icon: "assets/img/user_text.png",
-                  selectIcon:"assets/img/profile_tab_select.png" ,
-                  isActive: selectTab == 3,
-                  onTap: (){
-                    selectTab = 3;
-                    currentTab = const ProfileView();
-                    if (mounted) {
-                      setState(() {});
-                    }
-                  }),
+                icon: "assets/img/user_text.png",
+                selectIcon: "assets/img/profile_tab_select.png",
+                isActive: _selectTab == 3,
+                onTap: () {
+                  setState(() {
+                    _selectTab = 3;
+                    _currentTab = ProfileView();
+                  });
+                },
+              ),
             ],
           ),
         ),

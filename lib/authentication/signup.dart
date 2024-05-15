@@ -62,6 +62,8 @@ class _SignUpViewState extends State<SignUpView> {
       // create a new document in Firestore for users
       await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
         'email': _emailController.text,
+        'lname': _lastnameController.text,
+        'fname': _firstnameController.text
         // 'height': _selectHeight,
         // 'weight': _selectWeight,
       });
@@ -213,7 +215,9 @@ class _SignUpViewState extends State<SignUpView> {
                       });
                     },
                     icon: Icon(
-                      isPasswordVisible ? Icons.visibility : Icons.visibility_off,
+                      isPasswordVisible
+                          ? Icons.visibility
+                          : Icons.visibility_off,
                       color: TColor.gray,
                     ),
                   ),

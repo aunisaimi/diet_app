@@ -1,4 +1,5 @@
 
+import 'package:diet_app/screen/meal_planner/dietandfitness/meal_plan_view.dart';
 import 'package:flutter/material.dart';
 
 import '../../common/RoundButton.dart';
@@ -23,7 +24,7 @@ class SelectView extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const WorkoutTrackerView(),
+                      builder: (context) =>  WorkoutTrackerView(),
                     ),
                   );
                 }),
@@ -33,12 +34,12 @@ class SelectView extends StatelessWidget {
             RoundButton(
                 title: "Meal Planner",
                 onPressed: () {
-                  // Navigator.push(
-                  //   context,
-                  //   MaterialPageRoute(
-                  //     builder: (context) => const MealPlannerView(),
-                  //   ),
-                  // );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const MealPlanView(),
+                    ),
+                  );
                 }),
 
             const SizedBox(height: 15,),

@@ -15,6 +15,7 @@ class WorkoutDetailView extends StatefulWidget {
 }
 
 class _WorkoutDetailViewState extends State<WorkoutDetailView> {
+  String _difficulty = "Beginner"; // Default difficulty level
   List youArr = [
     {
       "image": "assets/img/fitness.png",
@@ -34,6 +35,18 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
     },
   ];
 
+  Map<String, List<String>> durations = {
+    "Beginner": [
+      "05:00", "12x", "15x", "20x", "25x", "02:00", "00:25", "12x", "00:30", "15x", "02:00"
+    ],
+    "Intermediate": [
+      "06:00", "15x", "18x", "25x", "30x", "02:30", "00:30", "15x", "00:45", "20x", "02:30"
+    ],
+    "Advanced": [
+      "07:00", "18x", "20x", "30x", "35x", "03:00", "00:35", "18x", "01:00", "25x", "03:00"
+    ],
+  };
+
   List exercisesArr = [
     {
       "name": "Set 1",
@@ -46,7 +59,7 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
         {
           "image": "assets/img/jumping_jack.png",
           "title": "Jumping Jack",
-          "value": "12x",
+          "value": "12",
         },
         {
           "image": "assets/img/Workout1.png",
@@ -130,7 +143,7 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                       color: TColor.lightGray,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: Icon(Icons.arrow_back_ios_new_rounded),
+                    child: const Icon(Icons.arrow_back_ios_new_rounded),
                   ),
                 ),
                 actions: [
@@ -145,7 +158,7 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                         color: TColor.lightGray,
                         borderRadius: BorderRadius.circular(10),
                       ),
-                      child: Icon(Icons.more_horiz_outlined),
+                      child: const Icon(Icons.more_horiz_outlined),
                     ),
                   )
                 ],
@@ -173,7 +186,7 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
             padding: const EdgeInsets.symmetric(horizontal: 15),
             decoration: BoxDecoration(
               color: TColor.white,
-              borderRadius: BorderRadius.only(
+              borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(25),
                 topRight: Radius.circular(25),
               ),
@@ -209,7 +222,9 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                                   ),
                                 ),
                                 Text(
-                                  "${widget.dObj["exercises"].toString()} | ${widget.dObj["duration"].toString()} | 320 Calories Burn",
+                                  "${widget.dObj["exercises"].toString()} "
+                                      "| ${widget.dObj["duration"].toString()} "
+                                      "| 320 Calories Burn",
                                   style: TextStyle(
                                     color: TColor.gray,
                                     fontSize: 12,
@@ -220,7 +235,7 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                           ),
                           IconButton(
                             onPressed: () {},
-                            icon: Icon(Icons.favorite),
+                            icon: const Icon(Icons.favorite),
                           ),
                         ],
                       ),
@@ -228,79 +243,56 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                       IconTitleNextRow(
                         icon: "assets/img/difficulty.png",
                         title: "Difficulty",
-                        time: "Beginner",
+                        time: _difficulty, // Display selected difficulty
                         color: TColor.secondaryColor2.withOpacity(0.3),
-                        onPressed: () {},
+                        onPressed: () {
+                          // Show dialog to choose difficulty
+                          showDialog(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text("Select Difficulty"),
+                                content: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    ListTile(
+                                      title: const Text("Beginner"),
+                                      onTap: () {
+                                        setState(() {
+                                          _difficulty = "Beginner";
+                                          Navigator.pop(context);
+                                        });
+                                      },
+                                    ),
+                                    ListTile(
+                                      title: const Text("Intermediate"),
+                                      onTap: () {
+                                        setState(() {
+                                          _difficulty = "Intermediate";
+                                          Navigator.pop(context);
+                                        });
+                                      },
+                                    ),
+                                    ListTile(
+                                      title: const Text("Advanced"),
+                                      onTap: () {
+                                        setState(() {
+                                          _difficulty = "Advanced";
+                                          Navigator.pop(context);
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              );
+                            },
+                          );
+                        },
                       ),
                       SizedBox(height: media.width * 0.05),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "You'll Need",
-                            style: TextStyle(
-                              color: TColor.black,
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () {},
-                            child: Text(
-                              "${youArr.length} Items",
-                              style: TextStyle(
-                                color: TColor.gray,
-                                fontSize: 12,
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                      SizedBox(
-                        height: media.width * 0.4,
-                        child: ListView.builder(
-                          padding: EdgeInsets.zero,
-                          scrollDirection: Axis.horizontal,
-                          shrinkWrap: true,
-                          itemCount: youArr.length,
-                          itemBuilder: (context, index) {
-                            var yObj = youArr[index];
-                            return Container(
-                              margin: const EdgeInsets.all(8),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Container(
-                                    height: media.width * 0.25,
-                                    width: media.width * 0.25,
-                                    decoration: BoxDecoration(
-                                      color: TColor.lightGray,
-                                      borderRadius: BorderRadius.circular(15),
-                                    ),
-                                    alignment: Alignment.center,
-                                    child: Image.asset(
-                                      yObj["image"].toString(),
-                                      width: media.width * 0.15,
-                                      height: media.width * 0.15,
-                                      fit: BoxFit.contain,
-                                    ),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.all(8),
-                                    child: Text(
-                                      yObj["title"].toString(),
-                                      style: TextStyle(
-                                        color: TColor.black,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-                      ),
+                      // You'll Need Section
+                      // Code for displaying items you'll need
+
                       SizedBox(height: media.width * 0.05),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -334,12 +326,15 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                           var sObj = exercisesArr[index];
                           return ExercisesSetSection(
                             sObj: sObj,
-                            onPressed: (obj) {
+                            onPressed: (sObj) {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => ExercisesStepDetails(
-                                    eObj: obj,
+                                    eObj: sObj,
+                                    image: sObj["image"],
+                                    duration: '', // Pass the image here
+                                     // Pass the duration based on difficulty
                                   ),
                                 ),
                               );

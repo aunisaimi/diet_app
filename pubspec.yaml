@@ -58,6 +58,8 @@ dependencies:
   simple_animation_progress_bar: ^1.6.0
   animated_toggle_switch: ^0.6.2
   readmore: ^2.1.0
+  flutter_ringtone_player: ^3.2.0
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:

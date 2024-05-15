@@ -1,25 +1,73 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/common/common_widget/workout_row.dart';
 import 'package:diet_app/screen/home/notification_view.dart';
 import 'package:dotted_dashed_line/dotted_dashed_line.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:simple_animation_progress_bar/simple_animation_progress_bar.dart';
 import 'package:simple_circular_progress_bar/simple_circular_progress_bar.dart';
 
+import '../../database/auth_service.dart';
 import 'activity_tracker_view.dart';
 import 'finished_workout_view.dart';
 
 
 class HomeView extends StatefulWidget {
-  const HomeView({super.key});
+  HomeView({super.key});
+
+  final User? user = FirebaseAuth.instance.currentUser;
+
 
   @override
   State<HomeView> createState() => _HomeViewState();
 }
 
 class _HomeViewState extends State<HomeView> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  AuthService authService = AuthService();
+  Future<DocumentSnapshot<Map<String, dynamic>>>? userDataFuture;
+
+  TextEditingController txtDate = TextEditingController();
+  TextEditingController txtWeight = TextEditingController();
+  TextEditingController txtHeight = TextEditingController();
+  TextEditingController _lastnameController = TextEditingController();
+  TextEditingController _firstnameController = TextEditingController();
+  TextEditingController _emailController = TextEditingController();
+  TextEditingController _genderController = TextEditingController();
+
+  // Future<void> fetchUserData() async {
+  //   try {
+  //     // Get the current user's ID
+  //     final userId = FirebaseAuth.instance.currentUser!.uid;
+  //
+  //     // Fetch the user's document from Firestore
+  //     final userDoc = await FirebaseFirestore.instance
+  //         .collection('users')
+  //         .doc(userId)
+  //         .get();
+  //
+  //     if (userDoc.exists) {
+  //       // Extract and set user data to the respective TextEditingController
+  //       setState(() {
+  //         _emailController.text = userDoc['email'];
+  //         _firstnameController.text = userDoc['fname'];
+  //         _lastnameController.text = userDoc['lname'];
+  //         _genderController.text = userDoc['gender'];
+  //         txtHeight.text = userDoc['height'];
+  //         txtWeight.text = userDoc['weight'];
+  //       });
+  //       print("This is the current user id: ${_emailController}");
+  //
+  //     } else {
+  //       print("Data not exist");
+  //     }
+  //   } catch (e) {
+  //     print("Error, please check: ${e}");
+  //   }
+  // }
   List lastWorkoutArr = [
     {
       "name": "Full Body Workout",
@@ -87,6 +135,32 @@ class _HomeViewState extends State<HomeView> {
     {"title": "4pm - now", "subtitle": "900ml"},
   ];
 
+
+  @override
+  void initState() {
+    super.initState();
+    print('${_emailController}');
+    print('${_firstnameController}');
+    print('${_lastnameController}');
+    userDataFuture = fetchUserData();
+  }
+
+  Future<DocumentSnapshot<Map<String, dynamic>>> fetchUserData() async {
+    try {
+      // Get the current user's ID
+      final userId = FirebaseAuth.instance.currentUser!.uid;
+
+      // Fetch the user's document from Firestore
+      return await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+    } catch (e) {
+      print("Error fetching user data: $e");
+      throw e;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var media = MediaQuery.of(context).size;
@@ -137,7 +211,7 @@ class _HomeViewState extends State<HomeView> {
                               fontSize: 12),
                         ),
                         Text(
-                          "Auni Afeeqah",
+                          "${_firstnameController.text} ${_lastnameController.text}",
                           style: TextStyle(
                               color: TColor.black,
                               fontSize: 20,
@@ -146,15 +220,15 @@ class _HomeViewState extends State<HomeView> {
                       ],
                     ),
                     IconButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const NotificationView(),
-                            ),
-                          );
-                        },
-                        icon: Icon(Icons.notifications_active),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const NotificationView(),
+                          ),
+                        );
+                      },
+                      icon: Icon(Icons.notifications_active),
                     ),
                   ],
                 ),
@@ -324,7 +398,7 @@ class _HomeViewState extends State<HomeView> {
                                       end: Alignment.centerRight)
                                       .createShader(
                                       Rect.fromLTRB(
-                                      0, 0, bounds.width, bounds.height));
+                                          0, 0, bounds.width, bounds.height));
                                 },
                                 child: Text(
                                   "78 BPM",
@@ -569,7 +643,7 @@ class _HomeViewState extends State<HomeView> {
                                                               0,
                                                               bounds.width,
                                                               bounds.height));
-                                                      },
+                                                    },
                                                     child: Text(
                                                       wObj["subtitle"].toString(),
                                                       style: TextStyle(

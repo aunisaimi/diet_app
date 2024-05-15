@@ -1,3 +1,4 @@
+import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/screen/workout_tracker/add_schedule_view.dart';
 import 'package:flutter/cupertino.dart';
@@ -6,16 +7,16 @@ import '../../common/common.dart';
 
 class WorkoutScheduleView extends StatefulWidget {
   const WorkoutScheduleView({
-    super.key,
-  });
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<WorkoutScheduleView> createState() => _WorkoutScheduleViewState();
 }
 
 class _WorkoutScheduleViewState extends State<WorkoutScheduleView> {
-  CalendarAgendaController _calendarAgendaControllerAppBar =
-  CalendarAgendaController();
+  // CalendarAgendaController _calendarAgendaControllerAppBar =
+  // CalendarAgendaController();
   late DateTime _selectedDateAppBBar;
 
   List eventArr = [
@@ -79,10 +80,8 @@ class _WorkoutScheduleViewState extends State<WorkoutScheduleView> {
       return dateToStartDate(wObj["date"] as DateTime) == date;
     }).toList();
 
-    if( mounted  ) {
-      setState(() {
-
-      });
+    if (mounted) {
+      setState(() {});
     }
   }
 
@@ -144,51 +143,50 @@ class _WorkoutScheduleViewState extends State<WorkoutScheduleView> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          CalendarAgenda(
-            controller: _calendarAgendaControllerAppBar,
-            appbar: false,
-            selectedDayPosition: SelectedDayPosition.center,
-            leading: IconButton(
-                onPressed: () {},
-                icon: Icon(Icons.chevron_left)),
-            training: IconButton(
-                onPressed: () {},
-                icon: Icon(Icons.chevron_right)),
-            weekDay: WeekDay.short,
-            dayNameFontSize: 12,
-            dayNumberFontSize: 16,
-            dayBGColor: Colors.grey.withOpacity(0.15),
-            titleSpaceBetween: 15,
-            backgroundColor: Colors.transparent,
-            // fullCalendar: false,
-            fullCalendarScroll: FullCalendarScroll.horizontal,
-            fullCalendarDay: WeekDay.short,
-            selectedDateColor: Colors.white,
-            dateColor: Colors.black,
-            locale: 'en',
-
-            initialDate: DateTime.now(),
-            calendarEventColor: TColor.primaryColor2,
-            firstDate: DateTime.now().subtract(const Duration(days: 140)),
-            lastDate: DateTime.now().add(const Duration(days: 60)),
-
-            onDateSelected: (date) {
-              _selectedDateAppBBar = date;
-              setDayEventWorkoutList();
-
-            },
-            selectedDayLogo: Container(
-              width: double.maxFinite,
-              height: double.maxFinite,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                    colors: TColor.primaryG,
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter),
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-            ),
-          ),
+          // CalendarAgenda(
+          //   controller: _calendarAgendaControllerAppBar,
+          //   appbar: false,
+          //   selectedDayPosition: SelectedDayPosition.center,
+          //   leading: IconButton(
+          //       onPressed: () {},
+          //       icon: Icon(Icons.chevron_left)),
+          //   training: IconButton(
+          //       onPressed: () {},
+          //       icon: Icon(Icons.chevron_right)),
+          //   weekDay: WeekDay.short,
+          //   dayNameFontSize: 12,
+          //   dayNumberFontSize: 16,
+          //   dayBGColor: Colors.grey.withOpacity(0.15),
+          //   titleSpaceBetween: 15,
+          //   backgroundColor: Colors.transparent,
+          //   // fullCalendar: false,
+          //   fullCalendarScroll: FullCalendarScroll.horizontal,
+          //   fullCalendarDay: WeekDay.short,
+          //   selectedDateColor: Colors.white,
+          //   dateColor: Colors.black,
+          //   locale: 'en',
+          //
+          //   initialDate: DateTime.now(),
+          //   calendarEventColor: TColor.primaryColor2,
+          //   firstDate: DateTime.now().subtract(const Duration(days: 140)),
+          //   lastDate: DateTime.now().add(const Duration(days: 60)),
+          //
+          //   onDateSelected: (date) {
+          //     _selectedDateAppBBar = date;
+          //     setDayEventWorkoutList();
+          //   },
+          //   selectedDayLogo: Container(
+          //     width: double.maxFinite,
+          //     height: double.maxFinite,
+          //     decoration: BoxDecoration(
+          //       gradient: LinearGradient(
+          //           colors: TColor.primaryG,
+          //           begin: Alignment.topCenter,
+          //           end: Alignment.bottomCenter),
+          //       borderRadius: BorderRadius.circular(10.0),
+          //     ),
+          //   ),
+          // ),
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -224,7 +222,8 @@ class _WorkoutScheduleViewState extends State<WorkoutScheduleView> {
                                   child: Stack(
                                     alignment: Alignment.centerLeft,
                                     children: slotArr.map((sObj) {
-                                      var min = (sObj["date"] as DateTime).minute;
+                                      var min =
+                                          (sObj["date"] as DateTime).minute;
                                       //(0 to 2)
                                       var pos = (min / 60) * 2 - 1;
 

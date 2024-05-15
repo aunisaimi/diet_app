@@ -48,12 +48,6 @@ class _OnBoardingViewState extends State<OnBoardingView> {
       "Let's start a healthy lifestyle with us, we can determine your diet every day. healthy eating is fun",
       "image": "assets/img/on_3.png"
     },
-    // {
-    //   "title": "Improve Sleep\nQuality",
-    //   "subtitle":
-    //   "Improve the quality of your sleep with us, good quality sleep can bring a good mood in the morning",
-    //   "image": "assets/img/on_4.png"
-    // },
   ];
 
   @override
@@ -93,13 +87,22 @@ class _OnBoardingViewState extends State<OnBoardingView> {
                   width: 60,
                   height: 60,
                   decoration: BoxDecoration(color: TColor.primaryColor1, borderRadius: BorderRadius.circular(35)),
-                  child: IconButton(icon: Icon( Icons.navigate_next, color: TColor.white, ), onPressed: (){
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.navigate_next,
+                      color: TColor.white, ),
+                    onPressed: (){
 
                     if(selectPage < 3) {
 
                       selectPage = selectPage + 1;
 
-                      controller.animateToPage(selectPage, duration: const Duration(milliseconds: 600), curve: Curves.bounceInOut);
+                      controller.animateToPage(
+                          selectPage,
+                          duration: const Duration(
+                              milliseconds: 600),
+                          curve: Curves.bounceInOut
+                      );
 
                       // controller.jumpToPage(selectPage);
 
