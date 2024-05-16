@@ -7,7 +7,7 @@ class UserModel {
   String lname;
   String height;
   String weight;
-  //String profilePicture;
+  String profilePicture;
   String email;
   //String bio;
   //String coverImage;
@@ -18,7 +18,7 @@ class UserModel {
     required this.lname,
     required this.height,
     required this.weight,
-    //required this.profilePicture,
+    required this.profilePicture,
     required this.email,
     //required this.bio,
     //required this.coverImage,
@@ -32,7 +32,7 @@ class UserModel {
       email:doc.get('email'),
       height:doc.get('height'),
       weight: doc.get('weight'),
-      //profilePicture:doc.get('profilePicture'),
+      profilePicture:doc.get('profilePicture'),
       //bio:doc.get('bio'),
       //coverImage:doc.get('coverImage'),
     );
@@ -45,7 +45,8 @@ class UserModel {
       'lname': lname,
       'email': email,
       'height': height,
-      'weight': weight
+      'weight': weight,
+      'profilePicture': profilePicture,
     };
   }
 }

@@ -55,31 +55,37 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
           "image": "assets/img/run_treadmill.jpg",
           "title": "Warm Up",
           "value": "05:00",
+          "document": "warm_up"
         },
         {
           "image": "assets/img/jumping_jack.png",
           "title": "Jumping Jack",
           "value": "12",
+          "document": "jumping_jack"
         },
         {
           "image": "assets/img/Workout1.png",
           "title": "Skipping",
           "value": "15x",
+          "document": "skipping"
         },
         {
           "image": "assets/img/squat.jpg",
           "title": "Squats",
           "value": "20x",
+          "document": "squat"
         },
         {
           "image": "assets/img/push_up.jpg",
           "title": "Push Up",
           "value": "25x",
+          "document": "push_up"
         },
         {
           "image": "assets/img/rest.jpg",
           "title": "Rest and Drink",
           "value": "02:00",
+          "document": "rest_drink"
         },
       ],
     },
@@ -332,6 +338,7 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                                 MaterialPageRoute(
                                   builder: (context) => ExercisesStepDetails(
                                     eObj: sObj,
+                                    document: sObj["document"],
                                     image: sObj["image"],
                                     duration: '', // Pass the image here
                                      // Pass the duration based on difficulty

@@ -2,13 +2,14 @@ import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diet_app/common/color_extension.dart';
+import 'package:diet_app/common/common_widget/round_textfield.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 
 class EditProfile extends StatefulWidget {
-  const EditProfile({super.key});
+  const EditProfile({Key? key}) : super(key: key);
 
   @override
   State<EditProfile> createState() => _EditProfileState();
@@ -31,8 +32,8 @@ class _EditProfileState extends State<EditProfile> {
 
   Future<void> uploadImageAndSave() async {
     try {
-      final user =_auth.currentUser;
-      if(user == null){
+      final user = _auth.currentUser;
+      if (user == null) {
         return;
       }
       final profile = 'profile_pictures/${user.uid}.png';
@@ -55,49 +56,47 @@ class _EditProfileState extends State<EditProfile> {
           content: Text('Profile picture uploaded and updated.'),
         ),
       );
-    }
-    catch (e){
+    } catch (e) {
       print('Error uploading image: $e');
     }
   }
 
   Future<void> pickImage(ImageSource source) async {
     final pickedImage = await imagePicker.pickImage(source: source);
-    if(pickedImage != null) {
+    if (pickedImage != null) {
       final imageBytes = await pickedImage.readAsBytes();
       setState(() {
         _image = Uint8List.fromList(imageBytes);
       });
-    }
-    else {
+    } else {
       print('Image source not found');
     }
   }
 
-  List<String> generateWeightRange(int start, int end, int step){
-    List<String> range =[];
-    for(int i = start; i<=end; i+=step){
+  List<String> generateWeightRange(int start, int end, int step) {
+    List<String> range = [];
+    for (int i = start; i <= end; i += step) {
       range.add("$i kg");
     }
     return range;
   }
 
-  List<String> generateHeightRange(int start, int end, int step){
-    List<String> range =[];
-    for(int i = start; i<=end; i+=step){
+  List<String> generateHeightRange(int start, int end, int step) {
+    List<String> range = [];
+    for (int i = start; i <= end; i += step) {
       range.add("$i cm");
     }
     return range;
   }
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     fetchUserData();
   }
 
   Future<void> fetchUserData() async {
-    try{
+    try {
       //get current user id
       final userId = FirebaseAuth.instance.currentUser!.uid;
 
@@ -107,7 +106,7 @@ class _EditProfileState extends State<EditProfile> {
           .doc(userId)
           .get();
 
-      if(userDoc.exists){
+      if (userDoc.exists) {
         // Extract and set user data to the respective TextEditingController
         setState(() {
           _emailController.text = userDoc['email'];
@@ -115,18 +114,17 @@ class _EditProfileState extends State<EditProfile> {
           dropdownvalue = userDoc['gender'] ?? "Male";
           _selectHeight = userDoc['height'];
           _selectWeight = userDoc['weight'];
-
         });
         print("this is current email: ${userDoc['email']}");
         print("this is current profile picture: ${userDoc['profilePicture']}");
       }
-    } catch (e){
+    } catch (e) {
       print(e);
     }
   }
 
   Future<void> updateUserData() async {
-    try{
+    try {
       // get current user id
       final userId = FirebaseAuth.instance.currentUser!.uid;
       print("This is image picture: ${_image}");
@@ -142,23 +140,24 @@ class _EditProfileState extends State<EditProfile> {
         'height': _selectHeight ?? 'Not specified',
         'weight': _selectWeight ?? 'Not specified',
       });
-    } catch(e){
+    } catch (e) {
       print(e);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    var media = MediaQuery.of(context).size;
     List<String> weightRange = generateWeightRange(45, 250, 1);
     List<String> heightRange = generateHeightRange(145, 200, 1);
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: TColor.primaryColor2,
       appBar: AppBar(
-        backgroundColor: TColor.white,
+        backgroundColor: TColor.primaryColor2,
         centerTitle: true,
         elevation: 0,
         leading: IconButton(
-          onPressed: (){
+          onPressed: () {
             Navigator.pop(context);
           },
           icon: const Icon(
@@ -173,7 +172,6 @@ class _EditProfileState extends State<EditProfile> {
               fontWeight: FontWeight.w700),
         ),
       ),
-
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: SingleChildScrollView(
@@ -183,7 +181,8 @@ class _EditProfileState extends State<EditProfile> {
               Stack(
                 alignment: Alignment.bottomLeft,
                 children: [
-                  _image != null ? CircleAvatar(
+                  _image != null
+                      ? CircleAvatar(
                     radius: 60,
                     backgroundImage: MemoryImage(_image!),
                   )
@@ -194,103 +193,74 @@ class _EditProfileState extends State<EditProfile> {
                   )
                       : const CircleAvatar(
                     radius: 60,
-                    backgroundImage: AssetImage("assets/logo.png"),
+                    backgroundImage: AssetImage("assets/img/logo.png"),
                   )),
                   Positioned(
                     bottom: -10,
                     left: 80,
                     child: IconButton(
-                      onPressed: (){
+                      onPressed: () {
                         pickImage(ImageSource.gallery);
                       },
-                      icon: const Icon(
-                          Icons.add_a_photo,
-                          color: Colors.teal),
+                      icon: const Icon(Icons.add_a_photo, color: Colors.teal),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 20,),
-
-              TextField(
+              const SizedBox(height: 20),
+              RoundTextField(
                 controller: _emailController,
-                style: TextStyle(
-                    color: TColor.primaryColor1,
-                    fontWeight: FontWeight.bold),
-                decoration: InputDecoration(
-                  enabledBorder: const OutlineInputBorder(
-                      borderSide: BorderSide(
-                          color: Colors.teal)
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(
-                        color: Colors.cyan.shade700),
-                  ),
-                  labelText: "Email",
-                  labelStyle: TextStyle(
-                      color: TColor.primaryColor1,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18),
-                ),
+                hitText: "Email",
+                icon: "assets/img/email.png",
+                keyboardType: TextInputType.emailAddress,
+                obscureText: false,
               ),
-
-              const SizedBox(height: 20,),
-
+              SizedBox(height: media.width * 0.04),
               Container(
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.teal, width: 1.0), // Add border styling
+                  border: Border.all(color: TColor.lightGray, width: 1.0),
                   borderRadius: BorderRadius.circular(8.0),
-                  // Add border radius for rounded corners
                 ),
-
                 child: Row(
                   children: [
                     Expanded(
                       child: Text(
                         dropdownvalue,
                         style: TextStyle(
-                            color: TColor.primaryColor1,
+                            color: TColor.black,
                             fontWeight: FontWeight.bold),
                       ),
                     ),
-
-                    const SizedBox(height: 20,),
-
+                    const SizedBox(height: 20),
                     PopupMenuButton<String>(
                       icon: const Icon(
                         Icons.arrow_drop_down_circle,
                         color: Colors.teal,
                       ),
-                      offset: const Offset(0, 50),
-                      itemBuilder: (BuildContext context){
+                      offset: const Offset(0, 2),
+                      itemBuilder: (BuildContext context) {
                         return <PopupMenuEntry<String>>[
                           PopupMenuItem<String>(
                             value: 'Male',
                             child: SizedBox(
-                              width: MediaQuery.of(context).size.width,
                               child: Text(
                                 'Male',
-                                style: TextStyle(
-                                    color: TColor.primaryColor1,
-                                    fontWeight: FontWeight.bold),
+                                style: TextStyle(color: TColor.black, fontWeight: FontWeight.bold),
                               ),
                             ),
                           ),
                           PopupMenuItem<String>(
                             value: 'Female',
                             child: SizedBox(
-                              width: MediaQuery.of(context).size.width,
                               child: Text(
                                 'Female',
-                                style: TextStyle(
-                                    color: TColor.primaryColor1,
-                                    fontWeight: FontWeight.bold),
+                                style: TextStyle(color: TColor.black, fontWeight: FontWeight.bold),
                               ),
                             ),
                           ),
                         ];
                       },
-                      onSelected: (String value){
+                      onSelected: (String value) {
                         setState(() {
                           dropdownvalue = value;
                         });
@@ -299,21 +269,19 @@ class _EditProfileState extends State<EditProfile> {
                   ],
                 ),
               ),
-
-              const SizedBox(height: 20,),
-
+              const SizedBox(height: 20),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 5),
+                padding: const EdgeInsets.all(5),
                 child: Column(
                   children: [
                     DropdownButtonFormField<String>(
                       value: _selectHeight,
-                      onChanged: (newValue){
+                      onChanged: (newValue) {
                         setState(() {
                           _selectHeight = newValue;
                         });
                       },
-                      items: heightRange.map((String value){
+                      items: heightRange.map((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
                           child: Text(
@@ -323,35 +291,30 @@ class _EditProfileState extends State<EditProfile> {
                         );
                       }).toList(),
                       decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
                         hintText: 'Height',
-                        hintStyle: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: TColor.primaryColor1
-                        ),
+                        hintStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: TColor.black),
                         enabledBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(color: Colors.teal),
-                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: TColor.lightGray),
+                          borderRadius: BorderRadius.circular(15),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(color: Colors.teal),
-                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(color: TColor.lightGray),
+                          borderRadius: BorderRadius.circular(15),
                         ),
-                        fillColor: Colors.white70,
+                        fillColor: TColor.lightGray,
                         filled: true,
                       ),
                     ),
-
-                    const SizedBox(height: 20,),
-
+                    const SizedBox(height: 20),
                     DropdownButtonFormField<String>(
                       value: _selectWeight,
-                      onChanged: (newValue){
+                      onChanged: (newValue) {
                         setState(() {
                           _selectWeight = newValue;
                         });
                       },
-                      items: weightRange.map((String value){
+                      items: weightRange.map((String value) {
                         return DropdownMenuItem<String>(
                           value: value,
                           child: Text(
@@ -361,18 +324,15 @@ class _EditProfileState extends State<EditProfile> {
                         );
                       }).toList(),
                       decoration: InputDecoration(
+                        contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
                         hintText: 'Weight',
-                        hintStyle: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: TColor.primaryColor1
-                        ),
+                        hintStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: TColor.black),
                         enabledBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(color: Colors.teal),
+                          borderSide: BorderSide(color: TColor.lightGray),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderSide: const BorderSide(color: Colors.teal),
+                          borderSide: BorderSide(color: TColor.lightGray),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         fillColor: Colors.white70,
@@ -382,28 +342,23 @@ class _EditProfileState extends State<EditProfile> {
                   ],
                 ),
               ),
-              const SizedBox(height: 20,),
-
+              const SizedBox(height: 20),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                    backgroundColor: TColor.primaryColor1,
-                    elevation: 10,
-                    shape: const StadiumBorder()
+                  backgroundColor: TColor.primaryColor1,
+                  elevation: 10,
+                  shape: const StadiumBorder(),
                 ),
                 child: const Text(
                   'Save Changes',
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold),
+                  style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 onPressed: () async {
-                  if(_emailController.text.isNotEmpty){
+                  if (_emailController.text.isNotEmpty) {
                     updateUserData();
                     await uploadImageAndSave();
-                    Navigator.pop(context,true);
-                  }
-                  else {
+                    Navigator.pop(context, true);
+                  } else {
                     Navigator.pop(context, false);
                   }
                 },
@@ -414,5 +369,4 @@ class _EditProfileState extends State<EditProfile> {
       ),
     );
   }
-
 }

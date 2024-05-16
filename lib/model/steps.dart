@@ -7,8 +7,8 @@ class StepModel {
 
   factory StepModel.fromMap(String id, Map<String, dynamic> data) {
     return StepModel(
-      id:id,
-      steps:data['steps'] as String,
+      id: id,
+      steps:data['steps'], // as String,
       description: data['description'] as String,
     );
   }

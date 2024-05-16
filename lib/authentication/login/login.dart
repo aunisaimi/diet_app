@@ -100,6 +100,7 @@ class _LoginViewState extends State<LoginView> {
   }
 
   bool isCheck = false;
+
   @override
   Widget build(BuildContext context) {
     var media = MediaQuery.of(context).size;

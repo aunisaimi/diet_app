@@ -57,25 +57,6 @@ class AuthService extends ChangeNotifier{
     }
   }
 
-  // // Register user
-  // Future<UserCredential> signUpWithEmailPassword(
-  //     String email,
-  //     String password,
-  //     String fname,
-  //     String lname,
-  //     String weight,
-  //     String height) async {
-  //   try {
-  //     UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-  //         email: email,
-  //         password: password);
-  //     return userCredential;
-  //   } on FirebaseAuthException catch (e){
-  //     throw Exception(e.code);
-  //   }
-  // }
-
-
   Future<User?> registerUserWithEmailandPassword(String name, String email, String password, double weight, int height) async {
     try {
       // check if all required fields are provided
