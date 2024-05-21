@@ -5,7 +5,11 @@ import 'package:flutter/cupertino.dart';
 class ExercisesSetSection extends StatelessWidget {
   final Map sObj;
   final Function(Map obj) onPressed;
-  const ExercisesSetSection({super.key, required this.sObj, required this.onPressed});
+
+  const ExercisesSetSection({
+    Key? key,
+    required this.sObj,
+    required this.onPressed}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -34,7 +38,7 @@ class ExercisesSetSection extends StatelessWidget {
                 eObj: eObj,
                 onPressed: () {
                   onPressed(eObj);
-                 },
+                },
               );
             })
       ],

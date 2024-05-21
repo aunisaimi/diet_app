@@ -16,13 +16,15 @@ class ExercisesStepDetails extends StatefulWidget {
   final String image;
   final String duration;
   final String? document;
+  final String difficulty;
+  final String exercise;
 
   const ExercisesStepDetails({
     Key? key,
     required this.eObj,
     required this.image,
     required this.duration,
-    this.document
+    this.document, required this.difficulty, required this.exercise
   }) : super(key: key);
 
   @override

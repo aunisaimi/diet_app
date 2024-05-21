@@ -1,4 +1,3 @@
-import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/common/common_widget/exercise_set_section.dart';
 import 'package:diet_app/screen/workout_tracker/exercise_step_detail.dart';
@@ -7,8 +6,12 @@ import 'package:flutter/material.dart';
 import '../../common/common_widget/icon_title_next_row.dart';
 
 class WorkoutDetailView extends StatefulWidget {
-  final Map dObj;
-  const WorkoutDetailView({Key? key, required this.dObj}) : super(key: key);
+  final List<Map<String, dynamic>> exercises;
+
+  const WorkoutDetailView({
+    Key? key,
+    required this.exercises,
+  }) : super(key: key);
 
   @override
   State<WorkoutDetailView> createState() => _WorkoutDetailViewState();
@@ -121,6 +124,30 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
     }
   ];
 
+  Map<String, List<Map<String, dynamic>>> _groupedExercises = {};
+
+  @override
+  void initState() {
+    super.initState();
+    print(widget.exercises);
+    setState(() {
+      _difficulty = "Beginner";
+    });
+    _groupExercisesByTitle();
+  }
+
+  void _groupExercisesByTitle() {
+    for (var exercise in widget.exercises) {
+      String title = exercise['title'];
+      print("Title fetched: $title");
+      if (_groupedExercises.containsKey(title)) {
+        _groupedExercises[title]!.add(exercise);
+      } else {
+        _groupedExercises[title] = [exercise];
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var media = MediaQuery.of(context).size;
@@ -220,20 +247,18 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  widget.dObj["title"].toString(),
+                                  widget.exercises.first["area"].toString(),
                                   style: TextStyle(
                                     color: TColor.black,
-                                    fontSize: 16,
+                                    fontSize: 17,
                                     fontWeight: FontWeight.w700,
                                   ),
                                 ),
                                 Text(
-                                  "${widget.dObj["exercises"].toString()} "
-                                      "| ${widget.dObj["duration"].toString()} "
-                                      "| 320 Calories Burn",
+                                  " ${widget.exercises.first["duration"].toString()} ",
                                   style: TextStyle(
                                     color: TColor.gray,
-                                    fontSize: 12,
+                                    fontSize: 14,
                                   ),
                                 )
                               ],
@@ -266,6 +291,7 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                                       onTap: () {
                                         setState(() {
                                           _difficulty = "Beginner";
+                                          print("Selection: $_difficulty");
                                           Navigator.pop(context);
                                         });
                                       },
@@ -275,6 +301,7 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                                       onTap: () {
                                         setState(() {
                                           _difficulty = "Intermediate";
+                                          print("Selection: $_difficulty");
                                           Navigator.pop(context);
                                         });
                                       },
@@ -284,6 +311,7 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                                       onTap: () {
                                         setState(() {
                                           _difficulty = "Advanced";
+                                          print("Selection: $_difficulty");
                                           Navigator.pop(context);
                                         });
                                       },
@@ -296,9 +324,6 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                         },
                       ),
                       SizedBox(height: media.width * 0.05),
-                      // You'll Need Section
-                      // Code for displaying items you'll need
-
                       SizedBox(height: media.width * 0.05),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -314,7 +339,7 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                           TextButton(
                             onPressed: () {},
                             child: Text(
-                              "${exercisesArr.length} Sets",
+                              "${_groupedExercises.length} Sets",
                               style: TextStyle(
                                 color: TColor.gray,
                                 fontSize: 12,
@@ -323,29 +348,87 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                           )
                         ],
                       ),
+
+
                       ListView.builder(
                         padding: EdgeInsets.zero,
                         physics: const NeverScrollableScrollPhysics(),
                         shrinkWrap: true,
-                        itemCount: exercisesArr.length,
+                        itemCount: _groupedExercises.keys.length,
                         itemBuilder: (context, index) {
-                          var sObj = exercisesArr[index];
-                          return ExercisesSetSection(
-                            sObj: sObj,
-                            onPressed: (sObj) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ExercisesStepDetails(
-                                    eObj: sObj,
-                                    document: sObj["document"],
-                                    image: sObj["image"],
-                                    duration: '', // Pass the image here
-                                     // Pass the duration based on difficulty
-                                  ),
+                          String title = _groupedExercises.keys.elementAt(index);
+                          List<Map<String, dynamic>> exercises = _groupedExercises[title]!;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                title,
+                                style: TextStyle(
+                                  color: TColor.black,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
                                 ),
-                              );
-                            },
+                              ),
+                              ListView.builder(
+                                padding: EdgeInsets.zero,
+                                physics: const NeverScrollableScrollPhysics(),
+                                shrinkWrap: true,
+                                itemCount: exercises.length,
+                                itemBuilder: (context, exerciseIndex) {
+                                  var sObj = exercises[exerciseIndex];
+
+                                  // Assign default values if any of the fields are null
+                                  String image = sObj["image"] ?? '';
+                                  String duration = sObj["duration"] ?? '';
+                                  String exercise = sObj["exercise"] ?? '';
+                                  String document = sObj["document"] ?? '';
+
+                                  return Row(
+                                    children: [
+                                      Expanded(
+                                        child: ExercisesSetSection(
+                                          sObj: sObj,
+                                          onPressed: (sObj) {
+                                            print("Document: $document");
+                                            Navigator.push(
+                                              context,
+                                              MaterialPageRoute(
+                                                builder: (context) => ExercisesStepDetails(
+                                                  eObj: sObj,
+                                                  image: image,
+                                                  duration: duration,
+                                                  exercise: exercise,
+                                                  difficulty: _difficulty,
+                                                  document: document,
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                        ),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.arrow_forward),
+                                        onPressed: () {
+                                          Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) => ExercisesStepDetails(
+                                                eObj: sObj,
+                                                image: image,
+                                                duration: duration,
+                                                exercise: exercise,
+                                                difficulty: _difficulty,
+                                                document: document,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ],
                           );
                         },
                       ),

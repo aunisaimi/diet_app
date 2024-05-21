@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diet_app/common/common_widget/upcoming_workout_row.dart';
 import 'package:diet_app/common/common_widget/what_train_row.dart';
 import 'package:diet_app/common/RoundButton.dart';
@@ -7,48 +8,152 @@ import 'package:diet_app/screen/workout_tracker/workout_detail_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-class WorkoutTrackerView extends StatelessWidget {
+class WorkoutTrackerView extends StatefulWidget {
   WorkoutTrackerView({Key? key}) : super(key: key);
+
+  @override
+  _WorkoutTrackerViewState createState() => _WorkoutTrackerViewState();
+}
+
+class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
 
   final List<Map<String, dynamic>> latestArr = [
     {
       "image": "assets/img/1.png",
-      "title": "Full Body Workout",
+      "title": "full body ",
       "time": "Today, 03:00pm"
     },
     {
       "image": "assets/img/leg_extension.jpg",
-      "title": "Leg Workout",
+      "title": "legs",
       "time": "Tomorrow, 10:00am"
     }
   ];
 
-  final List<Map<String, dynamic>> whatArr = [
-    {
-      "image": "assets/img/1.png",
-      "title": "Full Body Workout",
-      "exercises": "2 set",
-      "duration": " 12 mins"
-    },
-    {
-      "image": "assets/img/2.png",
-      "title": "Abs Workout",
-      "exercises": "5 set",
-      "duration": "25 mins"
-    },
-    {
-      "image": "assets/img/3.png",
-      "title": "Legs Workout",
-      "exercises": "4 set",
-      "duration": "3 mins"
-    },
-    {
-      "image": "assets/img/push_up.jpg",
-      "title": "Arm Workout",
-      "exercises": "2 set",
-      "duration": "10 seconds"
+  // final List<Map<String, dynamic>> whatArr = [
+  //   {
+  //     "image": "assets/img/1.png",
+  //     "title": "full body ",
+  //     "exercises": "2 set",
+  //     "duration": " 12 mins"
+  //   },
+  //   {
+  //     "image": "assets/img/2.png",
+  //     "title": "abs",
+  //     "exercises": "5 set",
+  //     "duration": "25 mins"
+  //   },
+  //   {
+  //     "image": "assets/img/3.png",
+  //     "title": "legs",
+  //     "exercises": "4 set",
+  //     "duration": "3 mins"
+  //   },
+  //   {
+  //     "image": "assets/img/push_up.jpg",
+  //     "title": "arm",
+  //     "exercises": "2 set",
+  //     "duration": "10 seconds"
+  //   }
+  // ];
+
+  List<Map<String,dynamic>> whatArr =[];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchExercise();
+  }
+
+  // Future<void> fetchExercise() async {
+  //   try {
+  //     List<String> exerciseNames = ['jumping_jack', 'plank', 'pushup','situp','imaginary_chair','wall_pushup','bicycle_kick'];
+  //     List<Map<String,dynamic>> exercisesList= [];
+  //
+  //     for(String exerciseName in exerciseNames) {
+  //       QuerySnapshot<Map<String,dynamic>> querySnapshot = await FirebaseFirestore.instance
+  //           .collection('exercises')
+  //           .doc('beginner')
+  //           .collection(exerciseName)
+  //           .get();
+  //
+  //       if (querySnapshot.docs.isNotEmpty){
+  //         querySnapshot.docs.forEach((doc) {
+  //           Map<String,dynamic> data = doc.data();
+  //           data['name'] = exerciseName; // add exercise name to the data
+  //           exercisesList.add(data);
+  //         });
+  //       }
+  //     }
+  //
+  //     setState((){
+  //       whatArr = exercisesList;
+  //     });
+  //   } catch (e){
+  //     print('Error fetching exercises: $e');
+  //   }
+  // }
+  Future<void> fetchExercise() async {
+    try {
+      List<String> exerciseNames = ['jumping_jack', 'plank', 'pushup', 'situp', 'imaginary_chair', 'wall_pushup', 'bicycle_kick'];
+      List<Map<String,dynamic>> exercisesList =[];
+
+      for (String exerciseName in exerciseNames){
+        QuerySnapshot<Map<String,dynamic>> querySnapshot = await FirebaseFirestore.instance
+            .collection('exercises')
+            .doc('beginner')
+            .collection(exerciseName)
+            .get();
+
+        if (querySnapshot.docs.isNotEmpty){
+          querySnapshot.docs.forEach((doc) {
+            Map<String,dynamic> data = doc.data();
+            data['name'] = exerciseName; // add exercise name to the data
+
+            // check if the exercise with the same title already exists in the list
+            bool alreadyExists = exercisesList.any((exercise) => exercise['title'] == data['title']);
+            if(!alreadyExists){
+              exercisesList.add(data);
+            }
+          });
+        }
+      }
+      setState(() {
+        whatArr = exercisesList;
+      });
+    } catch (e){
+      print('Error fetching exercises: $e');
     }
-  ];
+  }
+
+  Future<void> _onViewMorePressed(BuildContext context, String title) async {
+    List<Map<String,dynamic>> filteredExercises = whatArr
+        .where((exercise) => exercise['title'] == title)
+        .toList();
+
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) =>
+                WorkoutDetailView(exercises: filteredExercises)
+        )
+    );
+  }
+
+  // Future<void> _onViewMorePressed(BuildContext context, String title) async {
+  //   List<Map<String,dynamic>> filteredExercises = whatArr
+  //       .where((exercise){
+  //     return exercise['title'] == title;
+  //   }).toList();
+  //
+  //   Navigator.push(
+  //       context,
+  //       MaterialPageRoute(
+  //         builder: (context) =>
+  //             WorkoutDetailView(exercises: filteredExercises),
+  //       )
+  //   );
+  // }
 
   Future<void> _onSeeMorePressed(BuildContext context) async {
     // Simulate data fetching delay
@@ -134,13 +239,16 @@ class WorkoutTrackerView extends StatelessWidget {
               ),
             )
           ],
+
           body: Container(
             padding: const EdgeInsets.symmetric(horizontal: 20),
             decoration: BoxDecoration(
               color: TColor.white,
               borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(25), topRight: Radius.circular(25)),
+                  topLeft: Radius.circular(25),
+                  topRight: Radius.circular(25)),
             ),
+
             child: SingleChildScrollView(
               child: Column(
                 children: [
@@ -152,7 +260,9 @@ class WorkoutTrackerView extends StatelessWidget {
                         color: TColor.gray.withOpacity(0.3),
                         borderRadius: BorderRadius.circular(3)),
                   ),
+
                   SizedBox(height: media.width * 0.05),
+
                   Container(
                     padding: const EdgeInsets.symmetric(
                         vertical: 15, horizontal: 15),
@@ -186,7 +296,9 @@ class WorkoutTrackerView extends StatelessWidget {
                       ],
                     ),
                   ),
+
                   SizedBox(height: media.width * 0.05),
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -217,7 +329,9 @@ class WorkoutTrackerView extends StatelessWidget {
                     itemBuilder: (context, index) =>
                         UpcomingWorkoutRow(wObj: latestArr[index]),
                   ),
+
                   SizedBox(height: media.width * 0.05),
+
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -229,25 +343,56 @@ class WorkoutTrackerView extends StatelessWidget {
                               fontWeight: FontWeight.w700)),
                     ],
                   ),
-                  ListView.builder(
-                    padding: EdgeInsets.zero,
-                    physics: const NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: whatArr.length,
-                    itemBuilder: (context, index) {
-                      return InkWell(
-                        onTap: () => Navigator.push(
+                  // ListView.builder(
+                  //   padding: EdgeInsets.zero,
+                  //   physics: const NeverScrollableScrollPhysics(),
+                  //   shrinkWrap: true,
+                  //   itemCount: whatArr.length,
+                  //   itemBuilder: (context, index) {
+                  //     return InkWell(
+                  //       onTap: () => Navigator.push(
+                  //           context,
+                  //           MaterialPageRoute(
+                  //               builder: (context) =>
+                  //                   WorkoutDetailView(dObj: whatArr[index]['title']))),
+                  //
+                  //
+                  //       child: WhatTrainRow(wObj: whatArr[index]),
+                  //     );
+                  //   },
+                  // ),
+                ListView.builder(
+                  padding: EdgeInsets.zero,
+                  physics: const NeverScrollableScrollPhysics(),
+                  shrinkWrap: true,
+                  // get the unique titles from whatArr list
+                  itemCount: whatArr.map((exercise) => exercise['title'])
+                      .toSet()
+                      .length,
+                  itemBuilder: (context, index) {
+                    // Get the unique titles from the whatArr list
+                    final uniqueTitles = whatArr
+                        .map((exercise) => exercise['title'])
+                        .toSet()
+                        .toList();
+
+                    // Find the first exercise that matches the current unique title
+                    final exercise = whatArr
+                        .firstWhere((exercise) =>
+                    exercise['title'] == uniqueTitles[index]);
+
+                    return WhatTrainRow(
+                      wObj: exercise,
+                      onViewMorePressed: () {
+                        _onViewMorePressed(
                             context,
-                            MaterialPageRoute(
-                                builder: (context) =>
-                                    WorkoutDetailView(dObj: whatArr[index]))),
+                            exercise['title']);
+                      },
+                    );
+                  },
+                ),
 
-
-                        child: WhatTrainRow(wObj: whatArr[index]),
-                      );
-                    },
-                  ),
-                  SizedBox(height: media.width * 0.1),
+                SizedBox(height: media.width * 0.1),
                 ],
               ),
             ),

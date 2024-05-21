@@ -5,8 +5,14 @@ import 'package:diet_app/screen/workout_tracker/workout_detail_view.dart';
 import 'package:flutter/material.dart';
 
 class WhatTrainRow extends StatelessWidget {
-  final Map wObj;
-  const WhatTrainRow({super.key, required this.wObj});
+  //final Map wObj;
+  final Map<String,dynamic> wObj;
+  final VoidCallback onViewMorePressed;
+
+  const WhatTrainRow({
+    Key? key,
+    required this.wObj,
+    required this.onViewMorePressed}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -32,26 +38,26 @@ class WhatTrainRow extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      wObj["title"].toString(),
-                      style: TextStyle(
-                          color: TColor.black,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500),
-                    ),
-                    const SizedBox(
-                      height: 4,
-                    ),
-                    Text(
-                      "${wObj["exercises"].toString()}"
-                          " | ${ wObj["duration"].toString() }" ,
+                      wObj["title"]?.toString() ?? "No Title",
                       style: TextStyle(
                         color: TColor.gray,
-                        fontSize: 12,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold
                       ),
                     ),
-                    const SizedBox(
-                      height: 15,
-                    ),
+
+                    const SizedBox(height: 4,),
+                    // Text(
+                    //   "${wObj["exercises"]?.toString()?? "N/A"} "
+                    //       " | ${ wObj["duration"]?.toString()?? "N/A" }" ,
+                    //   style: TextStyle(
+                    //     color: TColor.gray,
+                    //     fontSize: 12,
+                    //   ),
+                    // ),
+
+                    const SizedBox(height: 15),
+
                     SizedBox(
                       width: 100,
                       height: 30,
@@ -61,23 +67,24 @@ class WhatTrainRow extends StatelessWidget {
                         type: RoundButtonType.textGradient,
                         elevation: 0.05,
                         fontWeight: FontWeight.w400,
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => WorkoutDetailView(dObj: wObj),
-                            ),
-                          );
-                        },
+                        onPressed: onViewMorePressed,
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) => WorkoutDetailView(dObj: wObj,
+                          //       //difficulty: "Beginner",
+                          //     ),
+                          //   ),
+                          // );
+
                       ),
                     )
-
                   ],
                 ),
               ),
-              const SizedBox(
-                width: 15,
-              ),
+
+              const SizedBox(width: 15),
+
               Stack(
                 alignment: Alignment.center,
                 children: [
@@ -91,11 +98,19 @@ class WhatTrainRow extends StatelessWidget {
                   ),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(30),
-                    child: Image.asset(
-                      wObj["image"].toString(),
+                    child: Image.network(
+                      wObj["image"]?.toString() ?? " ",
                       width: 90,
                       height: 90,
                       fit: BoxFit.contain,
+                      errorBuilder: (context,error, stackTrace){
+                        return Image.asset(
+                          'assets/img/error.png',
+                          width: 90,
+                          height: 90,
+                          fit: BoxFit.contain,
+                        );
+                      },
                     ),
                   ),
                 ],

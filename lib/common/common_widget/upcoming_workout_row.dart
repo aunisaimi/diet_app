@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import '../color_extension.dart';
 
 class UpcomingWorkoutRow extends StatefulWidget {
-  final Map wObj;
-  const UpcomingWorkoutRow({super.key, required this.wObj});
+  //final Map wObj;
+  final Map<String,dynamic> wObj;
+
+  const UpcomingWorkoutRow({required this.wObj});
 
   @override
   State<UpcomingWorkoutRow> createState() => _UpcomingWorkoutRowState();
@@ -52,7 +54,7 @@ class _UpcomingWorkoutRowState extends State<UpcomingWorkoutRow> {
                     ),
                   ),
                   Text(
-                    widget.wObj["title"].toString(),
+                    widget.wObj["description"].toString(),
                     style: TextStyle(
                         color: TColor.gray,
                         fontSize: 10,
