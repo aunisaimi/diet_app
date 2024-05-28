@@ -41,7 +41,7 @@ class SelectView extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const MealPlanView(),
+                      builder: (context) =>  MealPlanView(remainingCalories: 2500),
                     ),
                   );
                 }),

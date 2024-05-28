@@ -1,6 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diet_app/authentication/welcome_view.dart';
 import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
@@ -12,7 +14,9 @@ class WhatYourGoalView extends StatefulWidget {
 }
 
 class _WhatYourGoalViewState extends State<WhatYourGoalView> {
+  int _currentGoalIndex =0;
   CarouselController buttonCarouselController = CarouselController();
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   List goalArr = [
     {
@@ -34,6 +38,26 @@ class _WhatYourGoalViewState extends State<WhatYourGoalView> {
       "I have over 20 lbs to lose. I want to\ndrop all this fat and gain muscle\nmass"
     },
   ];
+
+  Future<void> saveUserGoal(String goalTitle) async {
+    try {
+      User? user = _auth.currentUser;
+      if(user!= null){
+        String uid = user.uid;
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(uid)
+            .update({
+          'goal':goalTitle
+            });
+        print('User goal updated successfully');
+      } else {
+        print('user not signed in');
+      }
+    } catch (e){
+      print('Error updating user goal: $e');
+    }
+  }
 
 
   @override
@@ -102,6 +126,11 @@ class _WhatYourGoalViewState extends State<WhatYourGoalView> {
                     viewportFraction: 0.7,
                     aspectRatio: 0.74,
                     initialPage: 0,
+                    onPageChanged: (index, reason){
+                      setState(() {
+                        _currentGoalIndex = index;
+                      });
+                    }
                   ),
                 ),
               ),
@@ -133,11 +162,13 @@ class _WhatYourGoalViewState extends State<WhatYourGoalView> {
 
                     RoundButton(
                         title: "Confirm",
-                        onPressed: (){
+                        onPressed: () async {
+                          await saveUserGoal(goalArr[_currentGoalIndex]['title']!);
                           Navigator.push(
                               context,
                               MaterialPageRoute(
-                                  builder: (context) => const WelcomeView()));
+                                  builder: (context) => const WelcomeView())
+                          );
                         },
                     ),
                   ],

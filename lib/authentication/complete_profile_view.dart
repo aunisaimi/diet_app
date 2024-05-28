@@ -6,6 +6,7 @@ import 'package:diet_app/common/common_widget/round_textfield.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class CompleteProfileView extends StatefulWidget {
   const CompleteProfileView({Key? key});
@@ -21,6 +22,7 @@ class _CompleteProfileViewState extends State<CompleteProfileView> {
   TextEditingController txtWeight = TextEditingController();
   TextEditingController txtHeight = TextEditingController();
   String? selectedGender;
+  String? ageErrorMessage;
 
   Future<void> updateUserProfile() async {
     try {
@@ -46,7 +48,35 @@ class _CompleteProfileViewState extends State<CompleteProfileView> {
     }
   }
 
+  int calculateAge(String date){
+    DateTime birthDate = DateFormat('MM/dd/yyyy').parse(date);
+    DateTime today = DateTime.now();
+    int age = today.year - birthDate.year;
+    if(today.month < birthDate.month ||
+        (today.month == birthDate.month && today.day < birthDate.day)){
+      age--;
+    }
+    return age;
+  }
 
+  void validateAndProceed(){
+    int age = calculateAge(txtDate.text);
+    if(age < 16){
+      setState(() {
+        ageErrorMessage = "Age must be 16 or older";
+      });
+    } else {
+      setState(() {
+        ageErrorMessage = null;
+      });
+      updateUserProfile();
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => const WhatYourGoalView())
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -146,11 +176,24 @@ class _CompleteProfileViewState extends State<CompleteProfileView> {
                       SizedBox(height: media.width * 0.04),
                       RoundTextField(
                         controller: txtDate,
-                        hitText: "Date of Birth",
+                        hitText: "Date of Birth (MM/dd/yyyy)",
                         icon: "assets/img/menu_schedule.png",
                         obscureText: false,
                       ),
+                      if (ageErrorMessage != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 8.0),
+                          child: Text(
+                            ageErrorMessage!,
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+
                       SizedBox(height: media.width * 0.04),
+
                       Row(
                         children: [
                           Expanded(
@@ -218,13 +261,14 @@ class _CompleteProfileViewState extends State<CompleteProfileView> {
                       RoundButton(
                         title: "Next >",
                         onPressed: () {
-                          updateUserProfile(); // Call function to update user profile
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const WhatYourGoalView(),
-                            ),
-                          );
+                          validateAndProceed();
+                          // updateUserProfile(); // Call function to update user profile
+                          // Navigator.push(
+                          //   context,
+                          //   MaterialPageRoute(
+                          //     builder: (context) => const WhatYourGoalView(),
+                          //   ),
+                          // );
                         },
                       ),
                     ],
