@@ -1,9 +1,12 @@
 import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
+import 'package:diet_app/screen/meal_planner/dietandfitness/calorie_intake.dart';
 import 'package:flutter/material.dart';
 
 class MealPlanView extends StatefulWidget {
-  const MealPlanView({Key? key}) : super(key: key);
+  final int remainingCalories;
+
+  const MealPlanView({super.key, required this.remainingCalories});
 
   @override
   State<MealPlanView> createState() => _MealPlanViewState();
@@ -143,9 +146,19 @@ class _MealPlanViewState extends State<MealPlanView> {
   int get totalCalories {
     int total = 0;
     selectedMeals.forEach((key, meal) {
-     if (meal.isNotEmpty){
-       total += meal["calories"] as int;
-     }
+      if (meal.isNotEmpty){
+        total += meal["calories"] as int;
+      }
+    });
+    return total;
+  }
+
+  int get totalFat {
+    int total = 0;
+    selectedMeals.forEach((key, meal) {
+      if(meal.isNotEmpty){
+        total += meal["fat"] as int;
+      }
     });
     return total;
   }
@@ -153,6 +166,8 @@ class _MealPlanViewState extends State<MealPlanView> {
   @override
   Widget build(BuildContext context) {
     var media = MediaQuery.of(context).size;
+    int remainingCalories = widget.remainingCalories - totalCalories;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: TColor.white,
@@ -167,6 +182,29 @@ class _MealPlanViewState extends State<MealPlanView> {
               color: Colors.black
           ),
         ),
+        actions: [
+          InkWell(
+            onTap: (){
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => CalorieIntake(
+                          remainingCalories: remainingCalories))
+              );
+            },
+            child: Container(
+              margin: const EdgeInsets.all(8),
+              height: 40,
+              width: 40,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: TColor.lightGray,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.more_horiz_rounded),
+            ),
+          )
+        ],
         title: Text(
           "Meal Plan",
           style: TextStyle(
@@ -181,8 +219,8 @@ class _MealPlanViewState extends State<MealPlanView> {
           Container(
             decoration: BoxDecoration(
               color: TColor.white,
-              boxShadow: [
-                const BoxShadow(
+              boxShadow: const [
+                BoxShadow(
                   color: Colors.black26,
                   blurRadius: 4,
                   offset: Offset(0, 2),
@@ -251,7 +289,7 @@ class _MealPlanViewState extends State<MealPlanView> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8,vertical: 15),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 15),
             child: TextField(
               controller: searchController,
               decoration: InputDecoration(
@@ -268,15 +306,35 @@ class _MealPlanViewState extends State<MealPlanView> {
               },
             ),
           ),
-
           Padding(
             padding: const EdgeInsets.all(20),
-            child: Text(
-              "Total calories: $totalCalories kcal",
-              style: TextStyle(
-                color: TColor.black,
-                fontSize: 20,
-                fontWeight: FontWeight.w700),
+            child: Column(
+              children: [
+                Text(
+                  "Total calories: $totalCalories kcal",
+                  style: TextStyle(
+                    color: TColor.black,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  'Remaining Calories: $remainingCalories kcal',
+                  style: TextStyle(
+                    color: TColor.gray,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  'Total Fat: $totalFat g',
+                  style: TextStyle(
+                    color: TColor.gray,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
             ),
           ),
           Expanded(
@@ -287,9 +345,9 @@ class _MealPlanViewState extends State<MealPlanView> {
                 var meal = filteredMeals[index];
                 bool isSelected = selectedMeals[selectedCategory]!["name"] == meal["name"];
                 return GestureDetector(
-                  onTap: (){
+                  onTap: () {
                     setState(() {
-                      if(isSelected){
+                      if (isSelected) {
                         selectedMeals[selectedCategory] = {};
                       } else {
                         selectedMeals[selectedCategory] = meal;
@@ -298,10 +356,10 @@ class _MealPlanViewState extends State<MealPlanView> {
                   },
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 8),
-                    decoration:  BoxDecoration(
-                        color: isSelected
-                            ? Colors.green.shade100
-                            : Colors.white
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? Colors.green.shade100
+                          : Colors.white,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
