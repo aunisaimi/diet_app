@@ -53,8 +53,8 @@ class _ProfileViewState extends State<ProfileView> {
           _firstnameController.text = userDoc['fname'];
           _lastnameController.text = userDoc['lname'];
           _genderController.text = userDoc['gender'];
-          txtHeight.text = userDoc['height'];
-          txtWeight.text = userDoc['weight'];
+          txtHeight.text = userDoc['height'].toString();
+          txtWeight.text = userDoc['weight'].toString();
         });
         print("This is the current user email: ${userDoc['email']}");
         print("This is the current user name: ${userDoc['fname']}");
@@ -66,33 +66,6 @@ class _ProfileViewState extends State<ProfileView> {
       print("Error, please check: ${e}");
     }
   }
-  // Future<void> fetchUserData() async {
-  //   try {
-  //     final User? user = _auth.currentUser;
-  //     if (user != null) {
-  //       final userId = user.uid;
-  //       final userDoc = await FirebaseFirestore.instance
-  //           .collection('users')
-  //           .doc(userId)
-  //           .get();
-  //
-  //       if (userDoc.exists) {
-  //         setState(() {
-  //           _emailController.text = userDoc['email'];
-  //           _firstnameController.text = userDoc['fname'];
-  //           _lastnameController.text = userDoc['lname'];
-  //           _genderController.text = userDoc['gender'];
-  //           txtHeight.text = userDoc['height'];
-  //           txtWeight.text = userDoc['weight'];
-  //         });
-  //       }
-  //     } else {
-  //       print('User not signed in.');
-  //     }
-  //   } catch (e) {
-  //     print("Error fetching user data: $e");
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {

@@ -1,11 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:diet_app/authentication/AuthGoogle.dart';
 import 'package:diet_app/authentication/complete_profile_view.dart';
 import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/common/common_widget/round_textfield.dart';
+import 'package:diet_app/screen/home/home_view.dart';
 import 'package:diet_app/screen/on_boarding/on_boarding_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sign_in_button/sign_in_button.dart';
 
 import 'login/login.dart';
 
@@ -59,14 +62,25 @@ class _SignUpViewState extends State<SignUpView> {
         password: _passwordController.text,
       );
 
+
+      AuthGoogle authGoogle = new AuthGoogle();
+
+      // get new user ID
+      int newUserId = await authGoogle.generateNewUserId();
+
       // create a new document in Firestore for users
-      await FirebaseFirestore.instance.collection('users').doc(userCredential.user!.uid).set({
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .set({
+        'IDuser': newUserId,
         'email': _emailController.text,
         'lname': _lastnameController.text,
         'fname': _firstnameController.text
         // 'height': _selectHeight,
         // 'weight': _selectWeight,
       });
+
 
       // navigate to next page if success
       Navigator.push(
@@ -321,7 +335,7 @@ class _SignUpViewState extends State<SignUpView> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => const LoginView(),
+                        builder: (context) => const LoginView(currentUserId: '',),
                       ),
                     );
                   },

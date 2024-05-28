@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:diet_app/authentication/AuthGoogle.dart';
+import 'package:diet_app/authentication/forgot_password.dart';
 import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/common/common_widget/round_textfield.dart';
@@ -8,13 +10,16 @@ import 'package:diet_app/screen/main_tab/main_tab_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import '../../screen/on_boarding/on_boarding_view.dart';
-import '../complete_profile_view.dart';
+import 'package:sign_in_button/sign_in_button.dart';
 
 class LoginView extends StatefulWidget {
+  final String currentUserId;
   final void Function()? onTap;
-  const LoginView({Key? key, this.onTap}) : super(key: key);
+
+  const LoginView({
+    Key? key,
+    this.onTap,
+    required this.currentUserId}) : super(key: key);
 
   @override
   State<LoginView> createState() => _LoginViewState();
@@ -24,7 +29,41 @@ class _LoginViewState extends State<LoginView> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  final AuthGoogle _authGoogle = AuthGoogle();
   bool isPasswordVisible = false;
+
+  Future<String?> getCurrentUserId() async {
+    try {
+      final userId = FirebaseAuth.instance.currentUser!.uid;
+
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userId)
+          .get();
+
+      if (userDoc.exists){
+
+      }
+      print('Print userID: $userId');
+      return userId;
+    }
+    catch (e){
+      print('Error getting current userId: $e');
+      return null;
+    }
+  }
+
+  String? _currentUserId;
+
+  @override
+  void initState(){
+    super.initState();
+    getCurrentUserId().then((userId) {
+      setState(() {
+        _currentUserId = userId;
+      });
+    });
+  }
 
   // login method:
   void userLogin(BuildContext context) async {
@@ -168,13 +207,23 @@ class _LoginViewState extends State<LoginView> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    Text(
-                      "Forgot your password?",
-                      style: TextStyle(
-                        color: TColor.gray,
-                        fontSize: 12,
-                        decoration: TextDecoration.underline,
-                      ),
+                    TextButton(
+                       child: Text(
+                         "Forgot your password?",
+                         style: TextStyle(
+                           color: TColor.gray,
+                           fontSize: 12,
+                           decoration: TextDecoration.underline,
+                         ),
+                       ),
+                      onPressed: () {
+                         Navigator.push(
+                             context,
+                             MaterialPageRoute(
+                                 builder: (context) => ForgotPassword()
+                             ),
+                         );
+                      },
                     ),
                   ],
                 ),
@@ -183,9 +232,11 @@ class _LoginViewState extends State<LoginView> {
                   title: "Login",
                   onPressed: () => userLogin(context), // Pass the context here
                 ),
-                SizedBox(
-                  height: media.width * 0.04,
-                ),
+
+                SizedBox(height: media.width * 0.1),
+
+
+
                 Row(
                   // crossAxisAlignment: CrossAxisAlignment.,
                   children: [
@@ -195,6 +246,7 @@ class _LoginViewState extends State<LoginView> {
                         color: TColor.gray.withOpacity(0.5),
                       ),
                     ),
+
                     Text(
                       "  Or  ",
                       style: TextStyle(color: TColor.black, fontSize: 12),
@@ -207,41 +259,59 @@ class _LoginViewState extends State<LoginView> {
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: media.width * 0.04,
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    GestureDetector(
-                      onTap: () {},
-                      child: Container(
-                        width: 50,
-                        height: 50,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: TColor.white,
-                          border: Border.all(
-                            width: 1,
-                            color: TColor.gray.withOpacity(0.4),
+
+                SizedBox(height: media.width * 0.04),
+
+                SignInButton(
+                    Buttons.google,
+                    text: "Sign up with Google",
+                    onPressed: () async {
+                      bool result = await _authGoogle.signInWithGoogle("user");
+                      if(result){
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                HomeView.loginWithGoogle(true),
                           ),
-                          borderRadius: BorderRadius.circular(15),
-                        ),
-                        child: Image.asset(
-                          "assets/img/google.png",
-                          width: 20,
-                          height: 20,
-                        ),
-                      ),
-                    ),
-                    SizedBox(
-                      width: media.width * 0.04,
-                    ),
-                  ],
+                        );
+                      }
+                    }
                 ),
-                SizedBox(
-                  height: media.width * 0.04,
-                ),
+
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.center,
+                //   children: [
+                //     GestureDetector(
+                //       onTap: () {},
+                //       child: Container(
+                //         width: 50,
+                //         height: 50,
+                //         alignment: Alignment.center,
+                //         decoration: BoxDecoration(
+                //           color: TColor.white,
+                //           border: Border.all(
+                //             width: 1,
+                //             color: TColor.gray.withOpacity(0.4),
+                //           ),
+                //           borderRadius: BorderRadius.circular(15),
+                //         ),
+                //
+                //         // child: Image.asset(
+                //         //   "assets/img/google.png",
+                //         //   width: 20,
+                //         //   height: 20,
+                //         // ),
+                //       ),
+                //     ),
+                //
+                //     SizedBox(width: media.width * 0.04),
+                //
+                //   ],
+                // ),
+
+                SizedBox(height: media.width * 0.04),
+
                 TextButton(
                   onPressed: () {
                     Navigator.pop(context);

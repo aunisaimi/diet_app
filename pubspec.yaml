@@ -60,6 +60,9 @@ dependencies:
   readmore: ^2.1.0
   flutter_ringtone_player: ^3.2.0
   shared_preferences: ^2.2.2
+  google_sign_in: ^6.2.1
+  percent_indicator: ^4.2.3
+  sign_in_button: ^3.2.0
 
 dev_dependencies:
   flutter_test:
