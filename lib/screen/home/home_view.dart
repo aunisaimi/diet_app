@@ -2,7 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/common/common_widget/workout_row.dart';
-import 'package:diet_app/screen/home/notification_view.dart';
+import 'package:diet_app/screen/bmi/bmiCalculator.dart';
+import 'package:diet_app/screen/on_boarding/started_view.dart';
 import 'package:dotted_dashed_line/dotted_dashed_line.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -16,13 +17,18 @@ import 'finished_workout_view.dart';
 
 
 class HomeView extends StatefulWidget {
-  HomeView({super.key});
+  late bool logGoogle = false;
+
+  HomeView({Key? key}) : super(key : key);
+  HomeView.loginWithGoogle(logGoogle){
+    this.logGoogle = logGoogle;
+  }
 
   final User? user = FirebaseAuth.instance.currentUser;
 
 
   @override
-  State<HomeView> createState() => _HomeViewState();
+  State<HomeView> createState() => _HomeViewState(logGoogle);
 }
 
 class _HomeViewState extends State<HomeView> {
@@ -37,6 +43,23 @@ class _HomeViewState extends State<HomeView> {
   TextEditingController _firstnameController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
   TextEditingController _genderController = TextEditingController();
+  double? bmi;
+  double? bmiPercentage;
+  String? bmiMessage;
+  String bmiStatus = "";
+  bool logGoogle;
+  _HomeViewState(this.logGoogle);
+
+
+  // sign out
+  void signOut(){
+    FirebaseAuth.instance.signOut();
+  }
+
+  @override
+  void dispose(){
+    super.dispose();
+  }
 
 
   @override
@@ -46,7 +69,10 @@ class _HomeViewState extends State<HomeView> {
     print('${_firstnameController}');
     print('${_lastnameController}');
     fetchUserData();
+    //_getBMIMessage(bmi);
+    //fetchDataFromSharedPreferences();
   }
+
 
   Future<void> fetchUserData() async {
     try {
@@ -66,13 +92,17 @@ class _HomeViewState extends State<HomeView> {
           _firstnameController.text = userDoc['fname'];
           _lastnameController.text = userDoc['lname'];
           _genderController.text = userDoc['gender'];
-          txtHeight.text = userDoc['height'];
-          txtWeight.text = userDoc['weight'];
+          bmi = userDoc['bmi'];
+          bmiPercentage = calculateBMIPercentage(bmi!);
+          bmiStatus = determineBMIStatus(bmi!);
+          // txtHeight.text = userDoc['height'];
+          // txtWeight.text = userDoc['weight'];
         });
         print("This is the current user email: ${userDoc['email']}");
         print("This is the current user name: ${userDoc['fname']}");
         print("This is the current user lname: ${userDoc['lname']}");
         print("This is the current user gender: ${userDoc['gender']}");
+        print("This is the current user bmi: ${userDoc['bmi']}");
 
       } else {
         print("Data not exist");
@@ -82,11 +112,73 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
-  void logout(){
-    // get auth service
-    final _auth = AuthService();
-    _auth.signOut();
+
+  double calculateBMIPercentage(double bmi){
+    const double minNormalBMI = 18.5;
+    const double maxNormalBMI  = 24.9;
+
+    if (bmi < minNormalBMI){
+      return ((bmi / minNormalBMI) * 100).clamp(0.0, 100.0);
+    } else if (bmi > maxNormalBMI){
+      return ((bmi / maxNormalBMI) * 100).clamp(0.0, 100.0);
+    } else {
+      return ((bmi - minNormalBMI) / (maxNormalBMI - minNormalBMI)) * 100;
+    }
   }
+
+  String determineBMIStatus(double bmi) {
+    if (bmi < 18.5) {
+      return "You are underweight";
+    } else if (bmi >= 18.5 && bmi <= 24.9) {
+      return "You have a normal weight";
+    } else {
+      return "You are overweight";
+    }
+  }
+
+  String _getBMIMessage(double? bmi) {
+    if (bmi! < 18.5) {
+      return 'Underweight';
+    } else if (bmi! >= 18.5 && bmi! < 25) {
+      return 'Normal weight';
+    } else if (bmi! >= 25 && bmi! < 30) {
+      return 'Overweight';
+    } else {
+      return 'Obese';
+    }
+  }
+
+  void logout(BuildContext context){
+    showDialog(
+        context: context,
+        builder: (BuildContext context){
+          return AlertDialog(
+            title: const Text('Confirm Logout'),
+            content: const Text('Are you sure you want to log out?'),
+            actions: <Widget>[
+              TextButton(
+                child: const Text('No'),
+                onPressed: (){
+                  Navigator.pop(context);
+                },
+              ),
+              TextButton(
+                  child: const Text('Yes'),
+                  onPressed: (){
+                    final _auth = AuthService();
+                    _auth.signOut();
+                    Navigator.of(context)
+                        .pushReplacement(
+                        MaterialPageRoute(
+                            builder: (context) => const StartedView())
+                    );
+                  },
+              )
+            ],
+          );
+        });
+  }
+
   List lastWorkoutArr = [
     {
       "name": "Full Body Workout",
@@ -155,7 +247,6 @@ class _HomeViewState extends State<HomeView> {
   ];
 
 
-
   @override
   Widget build(BuildContext context) {
     var media = MediaQuery.of(context).size;
@@ -214,16 +305,22 @@ class _HomeViewState extends State<HomeView> {
                         ),
                       ],
                     ),
+                    // IconButton(
+                    //   onPressed: () {
+                    //     Navigator.push(
+                    //       context,
+                    //       MaterialPageRoute(
+                    //         builder: (context) => const NotificationView(),
+                    //       ),
+                    //     );
+                    //   },
+                    //   icon: Icon(Icons.notifications_active),
+                    // ),
                     IconButton(
                       onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const NotificationView(),
-                          ),
-                        );
+                        logout(context);
                       },
-                      icon: Icon(Icons.notifications_active),
+                      icon: const Icon(Icons.exit_to_app_rounded,size: 25,),
                     ),
                   ],
                 ),
@@ -235,13 +332,15 @@ class _HomeViewState extends State<HomeView> {
                   decoration: BoxDecoration(
                       gradient: LinearGradient(colors: TColor.primaryG),
                       borderRadius: BorderRadius.circular(media.width * 0.075)),
-                  child: Stack(alignment: Alignment.center, children: [
-                    Image.asset(
-                      "assets/img/bg_dots.png",
-                      height: media.width * 0.4,
-                      width: double.maxFinite,
-                      fit: BoxFit.fitHeight,
-                    ),
+                  child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Image.asset(
+                          "assets/img/bg_dots.png",
+                          height: media.width * 0.4,
+                          width: double.maxFinite,
+                          fit: BoxFit.fitHeight,
+                        ),
                     Padding(
                       padding: const EdgeInsets.symmetric(
                           vertical: 25, horizontal: 25),
@@ -253,14 +352,14 @@ class _HomeViewState extends State<HomeView> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "BMI (Body Mass Index)",
+                                "BMI : ${bmi}",
                                 style: TextStyle(
                                     color: TColor.white,
                                     fontSize: 14,
                                     fontWeight: FontWeight.w700),
                               ),
                               Text(
-                                "You have a normal weight",
+                                'BMI Message:${_getBMIMessage(bmi)} ',
                                 style: TextStyle(
                                     color: TColor.white.withOpacity(0.7),
                                     fontSize: 12),
@@ -276,23 +375,33 @@ class _HomeViewState extends State<HomeView> {
                                       type: RoundButtonType.bgSGradient,
                                       fontSize: 12,
                                       fontWeight: FontWeight.w400,
-                                      onPressed: () {}))
+                                      onPressed: ()  async {
+                                        //final result = await
+                                        Navigator.push(
+                                            context,
+                                            MaterialPageRoute(
+                                                builder: (context) => const BMICalculator()
+                                            )
+                                        );
+                                      }))
                             ],
                           ),
+                          const SizedBox(height: 10),
                           AspectRatio(
                             aspectRatio: 1,
                             child: PieChart(
                               PieChartData(
                                 pieTouchData: PieTouchData(
                                   touchCallback:
-                                      (FlTouchEvent event, pieTouchResponse) {},
+                                      (FlTouchEvent event,
+                                      pieTouchResponse) {},
                                 ),
-                                startDegreeOffset: 250,
+                                startDegreeOffset: 270,
                                 borderData: FlBorderData(
                                   show: false,
                                 ),
                                 sectionsSpace: 1,
-                                centerSpaceRadius: 0,
+                                centerSpaceRadius:  15,
                                 sections: showingSections(),
                               ),
                             ),
@@ -709,7 +818,7 @@ class _HomeViewState extends State<HomeView> {
                                       ),
                                     ),
                                     const Spacer(),
-                                    Icon(Icons.alarm)
+                                    const Icon(Icons.alarm)
                                   ]),
                             ),
 
@@ -1020,29 +1129,38 @@ class _HomeViewState extends State<HomeView> {
 
   List<PieChartSectionData> showingSections() {
     return List.generate(
-      2,
-          (i) {
-        var color0 = TColor.secondaryColor1;
+      2, (i) {
+        final double value = bmiPercentage ?? 0;
+        final double percentage = bmiPercentage ?? 0.0;
+        final Color color = TColor.secondaryColor2;
+        var color0 = LinearGradient(colors: TColor.primaryG);
 
         switch (i) {
           case 0:
             return PieChartSectionData(
-                color: color0,
-                value: 33,
-                title: '',
+                color: color,
+                value: value,
+                title:'${percentage.toStringAsFixed(2)}',
                 radius: 55,
                 titlePositionPercentageOffset: 0.55,
-                badgeWidget: const Text(
-                  "20,1",
-                  style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700),
-                ));
+                titleStyle: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white
+                ),
+                // badgeWidget: Text(
+                //   'hey',//bmi?.toStringAsFixed(1) ?? "0.0",
+                //   style: const TextStyle(
+                //       color: Colors.white,
+                //       fontSize: 12,
+                //       fontWeight: FontWeight.w700),
+                // ),
+
+            );
           case 1:
             return PieChartSectionData(
               color: Colors.white,
-              value: 75,
+              value: 100 - value,//100 - value,
               title: '',
               radius: 45,
               titlePositionPercentageOffset: 0.55,
