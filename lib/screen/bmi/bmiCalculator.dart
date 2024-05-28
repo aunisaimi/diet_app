@@ -42,43 +42,6 @@ class _BMICalculatorState extends State<BMICalculator> {
     fetchData();
   }
 
-  // Future<void> fetchData() async {
-  //   try {
-  //     final userId = FirebaseAuth.instance.currentUser!.uid;
-  //
-  //     final userDoc = await FirebaseFirestore.instance
-  //         .collection('users')
-  //         .doc(userId)
-  //         .get();
-  //
-  //     if (userDoc.exists) {
-  //       setState(() {
-  //         _heightCtrl.text = userDoc.data()!['height'].toString();
-  //         _weightCtrl.text = userDoc.data()!['weight'].toString();
-  //
-  //         // Validate the height and weight before parsing
-  //         if (_isValidNumber(_heightCtrl.text) && _isValidNumber(_weightCtrl.text)) {
-  //           double height = double.parse(_heightCtrl.text);
-  //           double weight = double.parse(_weightCtrl.text);
-  //
-  //           bmi = calculateBMI(height, weight);
-  //         } else {
-  //           print("Invalid height or weight data");
-  //         }
-  //       });
-  //
-  //       print("Height: ${userDoc['height']}");
-  //       print("Weight: ${userDoc['weight']}");
-  //       print("Calculated BMI: $bmi");
-  //     } else {
-  //       print('User document does not exist');
-  //     }
-  //   } catch (e, stackTrace) {
-  //     print('Error fetching user data: $e');
-  //     print(stackTrace);
-  //   }
-  // }
-
   Future<void> fetchData() async {
     try {
       final userId = FirebaseAuth.instance.currentUser!.uid;
