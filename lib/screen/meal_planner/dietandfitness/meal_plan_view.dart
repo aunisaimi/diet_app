@@ -1,5 +1,6 @@
 import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
+import 'package:diet_app/screen/home/home_view.dart';
 import 'package:diet_app/screen/meal_planner/dietandfitness/calorie_intake.dart';
 import 'package:flutter/material.dart';
 
@@ -334,6 +335,7 @@ class _MealPlanViewState extends State<MealPlanView> {
                     fontWeight: FontWeight.w500,
                   ),
                 ),
+                CalorieIntake(remainingCalories: remainingCalories),
               ],
             ),
           ),

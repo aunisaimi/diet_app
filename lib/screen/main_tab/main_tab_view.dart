@@ -20,7 +20,7 @@ class _MainTabViewState extends State<MainTabView> {
 
   @override
   void initState() {
-    _currentTab = HomeView();
+    _currentTab = HomeView(remainingCalories: 2500,);
     super.initState();
   }
 
@@ -77,7 +77,7 @@ class _MainTabViewState extends State<MainTabView> {
                 onTap: () {
                   setState(() {
                     _selectTab = 0;
-                    _currentTab = HomeView();
+                    _currentTab = HomeView(remainingCalories: 2500,);
                   });
                 },
               ),

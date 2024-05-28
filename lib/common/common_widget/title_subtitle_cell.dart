@@ -1,3 +1,4 @@
+import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -34,10 +35,10 @@ class TitleSubtitleCell extends StatelessWidget {
             },
             child: Text(
               title,
-              style: TextStyle(
-                  color: TColor.white.withOpacity(0.7),
+              style: const TextStyle(
+                  color: Colors.indigo,
                   fontWeight: FontWeight.w500,
-                  fontSize: 14),
+                  fontSize: 16),
             ),
           ),
           Text(

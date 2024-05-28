@@ -272,7 +272,8 @@ class _LoginViewState extends State<LoginView> {
                           context,
                           MaterialPageRoute(
                             builder: (context) =>
-                                HomeView.loginWithGoogle(true),
+                                HomeView(remainingCalories: 2500)
+                            //HomeView.loginWithGoogle(true),
                           ),
                         );
                       }

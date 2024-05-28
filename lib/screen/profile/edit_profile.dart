@@ -151,9 +151,9 @@ class _EditProfileState extends State<EditProfile> {
     List<int> weightRange = generateWeightRange(45, 250, 1);
     List<int> heightRange = generateHeightRange(145, 200, 1);
     return Scaffold(
-      backgroundColor: TColor.primaryColor2,
+      backgroundColor: TColor.white,
       appBar: AppBar(
-        backgroundColor: TColor.primaryColor2,
+        backgroundColor: TColor.white,
         centerTitle: true,
         elevation: 0,
         leading: IconButton(
@@ -162,13 +162,13 @@ class _EditProfileState extends State<EditProfile> {
           },
           icon: const Icon(
               Icons.arrow_back_ios,
-              color: Colors.white),
+              color: Colors.black),
         ),
         title: Text(
           "Edit Profile",
           style: TextStyle(
-              color: TColor.white,
-              fontSize: 23,
+              color: TColor.black,
+              fontSize: 20,
               fontWeight: FontWeight.w700),
         ),
       ),
@@ -186,7 +186,8 @@ class _EditProfileState extends State<EditProfile> {
                     radius: 60,
                     backgroundImage: MemoryImage(_image!),
                   )
-                      : (profilePicture != null && profilePicture.isNotEmpty
+                      : (profilePicture != null
+                      && profilePicture.isNotEmpty
                       ? CircleAvatar(
                     radius: 60,
                     backgroundImage: NetworkImage(profilePicture),

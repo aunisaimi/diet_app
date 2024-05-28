@@ -3,6 +3,7 @@ import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/common/common_widget/workout_row.dart';
 import 'package:diet_app/screen/bmi/bmiCalculator.dart';
+import 'package:diet_app/screen/meal_planner/dietandfitness/calorie_intake.dart';
 import 'package:diet_app/screen/on_boarding/started_view.dart';
 import 'package:dotted_dashed_line/dotted_dashed_line.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -17,10 +18,11 @@ import 'finished_workout_view.dart';
 
 
 class HomeView extends StatefulWidget {
+  final int remainingCalories;
   late bool logGoogle = false;
 
-  HomeView({Key? key}) : super(key : key);
-  HomeView.loginWithGoogle(logGoogle){
+  HomeView({Key? key, required this.remainingCalories}) : super(key : key);
+  HomeView.loginWithGoogle(logGoogle, this.remainingCalories){
     this.logGoogle = logGoogle;
   }
 
@@ -47,19 +49,12 @@ class _HomeViewState extends State<HomeView> {
   double? bmiPercentage;
   String? bmiMessage;
   String bmiStatus = "";
+  int _remainingCalories = 0;
+  late ValueNotifier<double> _progressNotifier;
+
   bool logGoogle;
   _HomeViewState(this.logGoogle);
 
-
-  // sign out
-  void signOut(){
-    FirebaseAuth.instance.signOut();
-  }
-
-  @override
-  void dispose(){
-    super.dispose();
-  }
 
 
   @override
@@ -69,10 +64,11 @@ class _HomeViewState extends State<HomeView> {
     print('${_firstnameController}');
     print('${_lastnameController}');
     fetchUserData();
+    _remainingCalories = widget.remainingCalories;
+    _progressNotifier = ValueNotifier(_calculateProgress(widget.remainingCalories));
     //_getBMIMessage(bmi);
     //fetchDataFromSharedPreferences();
   }
-
 
   Future<void> fetchUserData() async {
     try {
@@ -112,6 +108,19 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
+  @override
+  void didUpdateWidget(HomeView oldWidget){
+    super.didUpdateWidget(oldWidget);
+    if(oldWidget.remainingCalories != widget.remainingCalories){
+      _progressNotifier.value = _calculateProgress(widget.remainingCalories);
+    }
+  }
+
+  double _calculateProgress(int remainingCalories){
+    const int dailyCalorieGoal = 2500; // default daily goal is 2500kcal
+    return (remainingCalories / dailyCalorieGoal) * 100;
+  }
+
 
   double calculateBMIPercentage(double bmi){
     const double minNormalBMI = 18.5;
@@ -147,6 +156,18 @@ class _HomeViewState extends State<HomeView> {
       return 'Obese';
     }
   }
+
+  // sign out
+  // void signOut(){
+  //   FirebaseAuth.instance.signOut();
+  // }
+
+  @override
+  void dispose(){
+    super.dispose();
+    _progressNotifier.dispose();
+  }
+
 
   void logout(BuildContext context){
     showDialog(
@@ -858,7 +879,8 @@ class _HomeViewState extends State<HomeView> {
                                             0, 0, bounds.width, bounds.height));
                                       },
                                       child: Text(
-                                        "760 kCal",
+                                        "$_remainingCalories kCal",
+                                        //"760 kCal",
                                         style: TextStyle(
                                             color: TColor.white.withOpacity(0.7),
                                             fontWeight: FontWeight.w700,
@@ -886,7 +908,8 @@ class _HomeViewState extends State<HomeView> {
                                               ),
                                               child: FittedBox(
                                                 child: Text(
-                                                  "230kCal\nleft",
+                                                  "$_remainingCalories kCal\nleft",
+                                                  //"230kCal\nleft",
                                                   textAlign: TextAlign.center,
                                                   style: TextStyle(
                                                       color: TColor.white,
@@ -897,9 +920,9 @@ class _HomeViewState extends State<HomeView> {
                                             SimpleCircularProgressBar(
                                               progressStrokeWidth: 10,
                                               backStrokeWidth: 10,
-                                              progressColors: TColor.primaryG,
+                                              progressColors: [TColor.primaryColor1, TColor.primaryColor2],
                                               backColor: Colors.grey.shade100,
-                                              valueNotifier: ValueNotifier(50),
+                                              valueNotifier: _progressNotifier,
                                               startAngle: -180,
                                             ),
                                           ],
@@ -909,7 +932,8 @@ class _HomeViewState extends State<HomeView> {
                                   ]),
                             ),
                           ],
-                        ))
+                        )
+                    )
                   ],
                 ),
                 SizedBox(

@@ -28,6 +28,8 @@ class _ProfileViewState extends State<ProfileView> {
   TextEditingController _firstnameController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
   TextEditingController _genderController = TextEditingController();
+  TextEditingController _goalController = TextEditingController();
+  String profilePicture = '';
 
   @override
   void initState() {
@@ -53,6 +55,8 @@ class _ProfileViewState extends State<ProfileView> {
           _firstnameController.text = userDoc['fname'];
           _lastnameController.text = userDoc['lname'];
           _genderController.text = userDoc['gender'];
+          _goalController.text = userDoc['goal'];
+          profilePicture = userDoc['profilePicture'];
           txtHeight.text = userDoc['height'].toString();
           txtWeight.text = userDoc['weight'].toString();
         });
@@ -113,7 +117,13 @@ class _ProfileViewState extends State<ProfileView> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(30),
-                    child: Image.asset(
+                    child: profilePicture.isNotEmpty
+                        ? Image.network(
+                      profilePicture,
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover)
+                        :Image.asset(
                       "assets/img/workingcats.jpg",
                       width: 50,
                       height: 50,
@@ -134,7 +144,7 @@ class _ProfileViewState extends State<ProfileView> {
                           ),
                         ),
                         Text(
-                          "Lose a Fat Program", // Update this
+                          "${_goalController.text}", // Update this
                           style: TextStyle(
                             color: TColor.gray,
                             fontSize: 12,
@@ -148,7 +158,7 @@ class _ProfileViewState extends State<ProfileView> {
                     height: 70,
                     child: RoundButton(
                       title: "Edit",
-                      type: RoundButtonType.bgGradient,
+                      type: RoundButtonType.bgSGradient,
                       fontSize: 12,
                       fontWeight: FontWeight.w400,
                       onPressed: () {
