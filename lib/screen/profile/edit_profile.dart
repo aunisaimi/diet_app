@@ -22,8 +22,8 @@ class _EditProfileState extends State<EditProfile> {
   final imagePicker = ImagePicker();
   String dropdownvalue = "Male";
   bool obscureText = true;
-  String? _selectHeight;
-  String? _selectWeight;
+  int? _selectHeight;
+  int? _selectWeight;
 
   TextEditingController _emailController = TextEditingController();
   TextEditingController _genderController = TextEditingController();
@@ -73,18 +73,18 @@ class _EditProfileState extends State<EditProfile> {
     }
   }
 
-  List<String> generateWeightRange(int start, int end, int step) {
-    List<String> range = [];
+  List<int> generateWeightRange(int start, int end, int step) {
+    List<int> range = [];
     for (int i = start; i <= end; i += step) {
-      range.add("$i kg");
+      range.add(i);
     }
     return range;
   }
 
-  List<String> generateHeightRange(int start, int end, int step) {
-    List<String> range = [];
+  List<int> generateHeightRange(int start, int end, int step) {
+    List<int> range = [];
     for (int i = start; i <= end; i += step) {
-      range.add("$i cm");
+      range.add(i);
     }
     return range;
   }
@@ -137,8 +137,8 @@ class _EditProfileState extends State<EditProfile> {
         'email': _emailController.text,
         'profilePicture': profilePicture,
         'gender': dropdownvalue,
-        'height': _selectHeight ?? 'Not specified',
-        'weight': _selectWeight ?? 'Not specified',
+        'height': _selectHeight ?? 0,
+        'weight': _selectWeight ?? 0,
       });
     } catch (e) {
       print(e);
@@ -148,8 +148,8 @@ class _EditProfileState extends State<EditProfile> {
   @override
   Widget build(BuildContext context) {
     var media = MediaQuery.of(context).size;
-    List<String> weightRange = generateWeightRange(45, 250, 1);
-    List<String> heightRange = generateHeightRange(145, 200, 1);
+    List<int> weightRange = generateWeightRange(45, 250, 1);
+    List<int> heightRange = generateHeightRange(145, 200, 1);
     return Scaffold(
       backgroundColor: TColor.primaryColor2,
       appBar: AppBar(
@@ -189,7 +189,7 @@ class _EditProfileState extends State<EditProfile> {
                       : (profilePicture != null && profilePicture.isNotEmpty
                       ? CircleAvatar(
                     radius: 60,
-                    backgroundImage: NetworkImage(profilePicture!),
+                    backgroundImage: NetworkImage(profilePicture),
                   )
                       : const CircleAvatar(
                     radius: 60,
@@ -274,18 +274,18 @@ class _EditProfileState extends State<EditProfile> {
                 padding: const EdgeInsets.all(5),
                 child: Column(
                   children: [
-                    DropdownButtonFormField<String>(
+                    DropdownButtonFormField<int>(
                       value: _selectHeight,
                       onChanged: (newValue) {
                         setState(() {
                           _selectHeight = newValue;
                         });
                       },
-                      items: heightRange.map((String value) {
-                        return DropdownMenuItem<String>(
+                      items: heightRange.map((int value) {
+                        return DropdownMenuItem<int>(
                           value: value,
                           child: Text(
-                            value,
+                            "$value cm",
                             style: TextStyle(color: Colors.black),
                           ),
                         );
@@ -307,18 +307,18 @@ class _EditProfileState extends State<EditProfile> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    DropdownButtonFormField<String>(
+                    DropdownButtonFormField<int>(
                       value: _selectWeight,
                       onChanged: (newValue) {
                         setState(() {
                           _selectWeight = newValue;
                         });
                       },
-                      items: weightRange.map((String value) {
-                        return DropdownMenuItem<String>(
+                      items: weightRange.map((int value) {
+                        return DropdownMenuItem<int>(
                           value: value,
                           child: Text(
-                            value,
+                            "$value kg",
                             style: TextStyle(color: Colors.black),
                           ),
                         );

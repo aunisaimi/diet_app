@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/common/common_widget/exercise_set_section.dart';
+import 'package:diet_app/screen/workout_tracker/add_exercise.dart';
 import 'package:diet_app/screen/workout_tracker/exercise_step_detail.dart';
 import 'package:flutter/material.dart';
 
@@ -7,10 +9,14 @@ import '../../common/common_widget/icon_title_next_row.dart';
 
 class WorkoutDetailView extends StatefulWidget {
   final List<Map<String, dynamic>> exercises;
+  // final String document;
+   final String category;
 
   const WorkoutDetailView({
     Key? key,
     required this.exercises,
+    // required this.document,
+     required this.category,
   }) : super(key: key);
 
   @override
@@ -18,6 +24,7 @@ class WorkoutDetailView extends StatefulWidget {
 }
 
 class _WorkoutDetailViewState extends State<WorkoutDetailView> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   String _difficulty = "Beginner"; // Default difficulty level
   List youArr = [
     {
@@ -124,16 +131,57 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
     }
   ];
 
+  // dummy data for illustration
+  final Map<String,dynamic> sObj = {
+    'title': 'Jumping Jack',
+  };
+  // final String image = 'assets/images/jumping_jack.png';
+  // final String duration = '5 minutes';
+  // final String exercise = 'Jumping Jack';
+  // final String difficulty = 'Easy';
+  // final String document = 'jumping_jack_document_id';
+
   Map<String, List<Map<String, dynamic>>> _groupedExercises = {};
 
   @override
   void initState() {
     super.initState();
-    print(widget.exercises);
+    print("Exercise to be shown: ${widget.exercises}");
     setState(() {
       _difficulty = "Beginner";
     });
+    _fetchAndGroupExercisesByTitle();
     _groupExercisesByTitle();
+    //fetchTitle();
+  }
+
+  Future<void> _fetchAndGroupExercisesByTitle() async {
+    try {
+      QuerySnapshot<Map<String,dynamic>> querySnapshot = await _firestore
+          .collection('exercises')
+          .doc(widget.category)
+          .collection('jumping_jack')
+          .get();
+
+      Map<String,List<Map<String,dynamic>>> groupedExercises = {};
+
+      for(var doc in querySnapshot.docs){
+        var exercise = doc.data();
+        exercise['id'] = doc.id; // add document id to the exercise data
+        String title = exercise['title'];
+        if(groupedExercises.containsKey(title)){
+          groupedExercises[title]!.add(exercise);
+        } else {
+          groupedExercises[title] = [exercise];
+        }
+      }
+      setState(() {
+        _groupedExercises = groupedExercises;
+      });
+    } catch (e,printStack){
+      print("Error fetching exercises: $e");
+      print(printStack);
+    }
   }
 
   void _groupExercisesByTitle() {
@@ -148,6 +196,42 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
     }
   }
 
+
+
+  // Future<void> fetchTitle() async {
+  //   try {
+  //    // List<String> exerciseCategory = ['full body','arms','legs','abs']; //widget.document;
+  //     String exerciseCategory = widget.category; // e.g: beginner
+  //     String exerciseName = widget.document; // e.g: jumping_jack
+  //
+  //     print("Fetching titles for category: $exerciseCategory , "
+  //         "and exercise Named : $exerciseName");
+  //
+  //     DocumentSnapshot<Map<String,dynamic>> querySnapshot = await _firestore
+  //             .collection('exercises')
+  //             .doc(exerciseCategory)
+  //             .collection(exerciseName)
+  //             .doc(exerciseName)
+  //             .get();
+  //
+  //     if (querySnapshot.exists){
+  //       print('Title found for exercise name: $exerciseName');
+  //       Map<String,dynamic> data = querySnapshot.data() ?? {};
+  //
+  //       String title = data['title'] ?? "No title found";
+  //       print("Title: $title");
+  //
+  //       //data = querySnapshot.data() ?? {};
+  //       //print("Data: $data");
+  //     } else {
+  //       print('No document found for exercise name: $exerciseName');
+  //     }
+  //
+  //   } catch (e, stackTrace) {
+  //     print("Error fetching title : $e");
+  //     print(stackTrace);
+  //   }
+  // }
   @override
   Widget build(BuildContext context) {
     var media = MediaQuery.of(context).size;
@@ -181,7 +265,15 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                 ),
                 actions: [
                   InkWell(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context)
+                              => const AddExercise()
+                          )
+                      );
+                    },
                     child: Container(
                       margin: const EdgeInsets.all(8),
                       height: 40,
@@ -247,7 +339,8 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  widget.exercises.first["area"].toString(),
+                                  widget.exercises.first["title"].toString(),
+                                  //widget.category,
                                   style: TextStyle(
                                     color: TColor.black,
                                     fontSize: 17,
@@ -255,7 +348,9 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                                   ),
                                 ),
                                 Text(
-                                  " ${widget.exercises.first["duration"].toString()} ",
+                                  //" ${widget.exercises.first["duration"].toString()} ",
+                                  //"${_difficulty}",
+                                  "Add duration here later",
                                   style: TextStyle(
                                     color: TColor.gray,
                                     fontSize: 14,
@@ -332,7 +427,7 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                             "Exercises",
                             style: TextStyle(
                               color: TColor.black,
-                              fontSize: 14,
+                              fontSize: 18,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
@@ -361,71 +456,109 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                title,
-                                style: TextStyle(
-                                  color: TColor.black,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                              // Text(
+                              //   title,
+                              //   style: TextStyle(
+                              //     color: TColor.gray,
+                              //     fontSize: 16,
+                              //     fontWeight: FontWeight.bold,
+                              //   ),
+                              // ),
                               ListView.builder(
                                 padding: EdgeInsets.zero,
                                 physics: const NeverScrollableScrollPhysics(),
                                 shrinkWrap: true,
                                 itemCount: exercises.length,
                                 itemBuilder: (context, exerciseIndex) {
-                                  var sObj = exercises[exerciseIndex];
+                                  // Debug print to check the length of exercises
+                                  print('Length of exercises: ${exercises.length}');
 
-                                  // Assign default values if any of the fields are null
-                                  String image = sObj["image"] ?? '';
-                                  String duration = sObj["duration"] ?? '';
-                                  String exercise = sObj["exercise"] ?? '';
-                                  String document = sObj["document"] ?? '';
+                                  // Check if exerciseIndex is valid
+                                  if (exerciseIndex >= 0 && exerciseIndex < exercises.length){
+                                    // to access sObj
+                                    Map<String,dynamic> sObj =  Map<String, dynamic>
+                                        .from(exercises[exerciseIndex]);
 
-                                  return Row(
-                                    children: [
-                                      Expanded(
-                                        child: ExercisesSetSection(
-                                          sObj: sObj,
-                                          onPressed: (sObj) {
-                                            print("Document: $document");
+                                    // Debug print to check the data
+                                    print('Exercise object: $sObj');
+                                    // Debug print to check the structure of each item in exercises
+                                    print('Exercise object at index $exerciseIndex: $sObj');
+                                    //print('Exercise name: ${sObj.containsKey('exercise') ? sObj['exercise'] : 'Key not found'}');
+
+                                    // Assign default values if any of the fields are null
+                                    String image = sObj["image"] ?? '';
+                                   // String duration = sObj["duration"] ?? '';
+                                    String exercise = sObj["title"] ?? '';
+                                    String document = sObj["name"] ?? '';
+                                    //String steps = sObj["steps"] ?? '';
+
+                                    print('Image: ${sObj.containsKey('image') ? sObj['image'] : 'Key not found'}');
+                                    //print('Duration: ${sObj.containsKey('duration') ? sObj['duration'] : 'Key not found'}');
+                                    print('Exercise: ${sObj.containsKey('title') ? sObj['title'] : 'Key not found'}');
+                                    print('Document: ${sObj.containsKey('name') ? sObj['name'] : 'Key not found'}');
+                                    //print('Steps: ${sObj.containsValue('steps') ? sObj['steps'] : 'Key not found'}');
+
+                                    // Debug print to check the exercise name
+                                    print('Exercise name: $document');
+
+                                    return Row(
+                                      children: [
+                                        Expanded(
+                                          child: ExercisesSetSection(
+                                            sObj: sObj,
+                                            onPressed: (sObj) {
+                                              if (exercise.isNotEmpty) {
+                                                Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                    builder: (context) => ExercisesStepDetails(
+                                                      eObj: sObj,
+                                                      image: image,
+                                                      //duration: duration,
+                                                      difficulty: _difficulty,
+                                                      document: document,
+                                                      exerciseName: exercise,
+                                                      steps: '',
+                                                    ),
+                                                  ),
+                                                );
+                                              } else {
+                                                print("Exercise name is empty or exercise object: $sObj");
+                                              }
+                                            },
+                                          ),
+                                        ),
+                                        IconButton(
+                                          icon: const Icon(Icons.arrow_forward),
+                                          onPressed: () {
                                             Navigator.push(
                                               context,
                                               MaterialPageRoute(
                                                 builder: (context) => ExercisesStepDetails(
                                                   eObj: sObj,
                                                   image: image,
-                                                  duration: duration,
-                                                  exercise: exercise,
+                                                  //duration: duration,
+                                                  exerciseName: exercise,
                                                   difficulty: _difficulty,
                                                   document: document,
+                                                  steps: '',
                                                 ),
                                               ),
                                             );
+                                            // if(exercise.isNotEmpty){
+                                            //
+                                            // }
+                                            // else {
+                                            //   print("Exercise name is empty for exercise object: $sObj");
+                                            // }
                                           },
                                         ),
-                                      ),
-                                      IconButton(
-                                        icon: Icon(Icons.arrow_forward),
-                                        onPressed: () {
-                                          Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder: (context) => ExercisesStepDetails(
-                                                eObj: sObj,
-                                                image: image,
-                                                duration: duration,
-                                                exercise: exercise,
-                                                difficulty: _difficulty,
-                                                document: document,
-                                              ),
-                                            ),
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  );
+                                      ],
+                                    );
+                                  } else {
+                                    print('Invalid exercise index: $exerciseIndex');
+                                    return const SizedBox();
+                                  }
                                 },
                               ),
                             ],

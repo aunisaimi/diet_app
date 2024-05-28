@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 class ExercisesRow extends StatelessWidget {
   final Map eObj;
   final VoidCallback onPressed;
-  const ExercisesRow({super.key, required this.eObj, required this.onPressed});
+  const ExercisesRow({
+    super.key,
+    required this.eObj,
+    required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +31,7 @@ class ExercisesRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    eObj["title"].toString(),
+                    eObj["title"],//.toString(),
                     style: TextStyle(
                         color: TColor.black,
                         fontSize: 14,

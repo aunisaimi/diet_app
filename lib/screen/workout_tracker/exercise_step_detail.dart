@@ -2,29 +2,37 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/common/common_widget/step_detail_row.dart';
+import 'package:diet_app/model/exercises.dart';
 import 'package:diet_app/model/steps.dart';
 import 'package:diet_app/screen/countdown/countdown_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:readmore/readmore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/auth_service.dart';
 
 class ExercisesStepDetails extends StatefulWidget {
-  final Map eObj; // exercise obj contains details about exercise
+  final Map eObj;
+  //final Map eObj; // exercise obj contains details about exercise
   final String image;
-  final String duration;
-  final String? document;
+  final String? duration;
+  final String document;
   final String difficulty;
-  final String exercise;
+  final String exerciseName;
+  final String? description;
+  final String steps;
 
   const ExercisesStepDetails({
     Key? key,
     required this.eObj,
     required this.image,
-    required this.duration,
-    this.document, required this.difficulty, required this.exercise
+    this.duration,
+    required this.document,
+    required this.difficulty,
+    required this.exerciseName,
+    this.description, required this.steps
   }) : super(key: key);
 
   @override
@@ -40,83 +48,74 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
 
   Future<void> fetchSteps() async {
     try {
-      String exerciseName = widget.eObj['title']; // Assuming 'title' is the field containing exercise names
-      DocumentSnapshot<Map<String, dynamic>> docSnapshot = await _firestore
-          .collection('steps')
-          .doc(widget.document) // Assuming 'jumping_jack' is the document ID
+      String exerciseName = widget.document;
+      print('Fetching steps for exercise: $exerciseName');
+
+      DocumentSnapshot<Map<String, dynamic>> querySnapshot = await _firestore
+          .collection('exercises')
+          .doc('beginner') // Assuming 'beginner' is the level, replace it if needed
+          .collection(exerciseName) // Accessing 'jumping_jack', 'plank', or 'push_up'
+          .doc(exerciseName) // Accessing the specific exercise document
+          .collection('steps') // Accessing the 'steps' subcollection
+          .doc('steps') // Specific document within 'steps' collection
           .get();
 
-      if (docSnapshot.exists) {
-        print('Document exists: ${docSnapshot.data()}');
-        // Ensure explicit type for data retrieval
-        Map<String, dynamic> data = docSnapshot.data() as Map<String, dynamic>;
-        print("Data: ${data.keys}, Value: ${data.values}");
+      if (querySnapshot.exists) {
+        print('Steps found for exercise: $exerciseName');
+        Map<String, dynamic> data = {};
 
-        if (data != null) {
-          print("Data: $data");
+        /*for (var doc in querySnapshot) {
+          data.addAll(doc.data());
+        }*/
+        data = querySnapshot.data() ?? {};
 
-          // Define the correct order of steps
-          List<String> orderedKeys = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth'];
+        print("Data: $data");
 
-          // Sort the keys in the correct order
-          List<String> sortedKeys = data.keys.toList();
-          sortedKeys.sort((a, b) {
-            return orderedKeys.indexOf(a).compareTo(orderedKeys.indexOf(b));
-          });
+        List<String> orderedKeys = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth'];
 
-          // Create the steps list in the correct order
-          List<StepModel> stepsList = sortedKeys.map((key) {
-            String stepNumber = key;
-            String stepDescription = data[key] as String;
+        // Sort the keys in the correct order
+        List<String> sortedKeys = data.keys.toList();
+        sortedKeys.sort((a, b) {
+          return orderedKeys.indexOf(a).compareTo(orderedKeys.indexOf(b));
+        });
 
-            // Create a map to match the expected structure for StepModel.fromMap
-            Map<String, dynamic> stepData = {
-              'steps': stepNumber,
-              'description': stepDescription,
-            };
+        // Create the steps list in the correct order
+        List<StepModel> stepsList = sortedKeys.map((key) {
+          String stepNumber = key;
+          String stepDescription = data[key] as String;
 
-            return StepModel.fromMap(stepNumber, stepData);
-          }).toList();
+          // Create a map to match the expected structure for StepModel.fromMap
+          Map<String, dynamic> stepData = {
+            'steps': stepNumber,
+            'description': stepDescription,
+          };
 
-          /*List<StepModel> stepsList = data.entries.map((entry) {
+          return StepModel.fromMap(stepData);
+        }).toList();
 
-            String stepNumber = entry.key;
-            String stepDescription = entry.value as String;
-
-            // Create a map to match the expected structure for StepModel.fromMap
-            Map<String, dynamic> stepData = {
-              'steps': stepNumber,
-              'description': stepDescription,
-            };
-
-            return StepModel.fromMap(stepNumber, stepData);
-          }).toList();*/
-
-
-          setState(() {
-            stepArr = stepsList;
-          });
-        } else {
-          print('Document exists but data is not a Map<String, dynamic>');
-          // Handle the case where data is not as expected
-        }
+        setState(() {
+          stepArr = stepsList;
+        });
       } else {
-        print('Document does not exist for exercise: jumping_jack');
-        // Handle the case where the document does not exist
+        print('No steps found for the exercise: $exerciseName');
       }
     } catch (e, printStack) {
       print('Error fetching steps: $e');
       print(printStack);
-      // Handle any errors that occur during fetching
     }
   }
+
+
 
   @override
   void initState() {
     super.initState();
     print("Document to be opened: ${widget.document}");
+    //print("Steps: ");
+    //fetchExerciseName();
     fetchSteps();
   }
+
 
 
   @override
@@ -143,22 +142,6 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
             child: const Icon(Icons.close),
           ),
         ),
-        actions: [
-          InkWell(
-            onTap: () {},
-            child: Container(
-              margin: const EdgeInsets.all(8),
-              height: 40,
-              width: 40,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: TColor.lightGray,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.more_horiz_rounded),
-            ),
-          ),
-        ],
       ),
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -177,7 +160,7 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
                       color: TColor.black.withOpacity(0.2),
                       borderRadius: BorderRadius.circular(20),
                     ),
-                    child: Image.asset(
+                    child: Image.network(
                       widget.image,
                       fit: BoxFit.cover,
                     ),
@@ -194,7 +177,7 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
               ),
               const SizedBox(height: 15),
               Text(
-                widget.eObj["title"].toString().replaceAll('_', ' '),
+                widget.eObj["name"].toString().replaceAll('_', ' '),
                 style: TextStyle(
                   color: TColor.black,
                   fontSize: 16,
@@ -203,7 +186,7 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
               ),
               const SizedBox(height: 4),
               Text(
-                "Easy | 390 calories burn",
+                widget.difficulty,
                 style: TextStyle(
                   color: TColor.gray,
                   fontSize: 12,
@@ -219,21 +202,29 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
                 ),
               ),
               const SizedBox(height: 15),
-              ReadMoreText(
-                'A jumping jack, also known as a star jump and called a side-straddle hop in the US military, is a physical jumping exercise performed by jumping to a position with the legs spread wide A jumping jack, also known as a star jump and called a side-straddle hop in the US military, is a physical jumping exercise performed by jumping to a position with the legs spread wide',
-                trimLines: 4,
-                colorClickableText: TColor.black,
-                trimMode: TrimMode.Line,
-                trimCollapsedText: ' Read More ...',
-                trimExpandedText: ' Read Less',
+              // ReadMoreText(
+              //   'A jumping jack, also known as a star jump and called a side-straddle hop in the US military, is a physical jumping exercise performed by jumping to a position with the legs spread wide A jumping jack, also known as a star jump and called a side-straddle hop in the US military, is a physical jumping exercise performed by jumping to a position with the legs spread wide',
+              //   trimLines: 4,
+              //   colorClickableText: TColor.black,
+              //   trimMode: TrimMode.Line,
+              //   trimCollapsedText: ' Read More ...',
+              //   trimExpandedText: ' Read Less',
+              //   style: TextStyle(
+              //     color: TColor.gray,
+              //     fontSize: 12,
+              //   ),
+              //   moreStyle: TextStyle(
+              //     fontSize: 12,
+              //     color: TColor.primaryColor1,
+              //     fontWeight: FontWeight.w700,
+              //   ),
+              // ),
+              Text(
+                widget.eObj['description'],
                 style: TextStyle(
                   color: TColor.gray,
-                  fontSize: 12,
-                ),
-                moreStyle: TextStyle(
-                  fontSize: 12,
-                  color: TColor.primaryColor1,
-                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
                 ),
               ),
               const SizedBox(height: 15),
@@ -265,11 +256,15 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
                 shrinkWrap: true,
                 itemCount: stepArr.length,
                 itemBuilder: (context, index) {
-                  var sObj = stepArr[index];
-                  return StepDetailRow(
-                    sObj: sObj,
-                    isLast: stepArr.last == sObj,
+                  var step = stepArr[index];
+                  return ListTile(
+                    title: Text(step.stepNumber),
+                    subtitle: Text(step.description),
                   );
+                  // return StepDetailRow(
+                  //   sObj: sObj,
+                  //   isLast: stepArr.last == sObj,
+                  // );
                 },
               ),
               Text(
@@ -354,5 +349,4 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
       ),
     );
   }
-
 }

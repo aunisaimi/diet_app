@@ -5,6 +5,7 @@ class ExerciseModel {
   final String value;
   final String title;
   final String image;
+  final String steps;
 
   ExerciseModel({
     required this.title,
@@ -13,6 +14,7 @@ class ExerciseModel {
     required this.description,
     required this.area,
     required this.image,
+    required this.steps,
   });
 
  factory ExerciseModel.fromMap(Map<String, dynamic> data) {
@@ -23,6 +25,7 @@ class ExerciseModel {
       value: data['value'] ?? '',
       description: data['description'] ?? '',
       image: data['image'] ?? '',
+      steps: data['steps'] ?? '',
     );
  }
 
@@ -34,6 +37,7 @@ class ExerciseModel {
      'value': value,
      'description': description,
      'image': image,
+     'steps': steps,
    };
  }
 }

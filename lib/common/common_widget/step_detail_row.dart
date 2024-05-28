@@ -1,4 +1,5 @@
 import 'package:diet_app/common/color_extension.dart';
+import 'package:diet_app/model/exercises.dart';
 import 'package:diet_app/model/steps.dart';
 import 'package:dotted_dashed_line/dotted_dashed_line.dart';
 import 'package:flutter/material.dart';
@@ -15,19 +16,12 @@ class StepDetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final steps = sObj.stepNumber ?? 'N/A';
+    final description = sObj.description ?? 'No Description Available';
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        SizedBox(
-          width: 25,
-          child: Text(
-            sObj.id,
-            style: TextStyle(
-              color: TColor.secondaryColor1,
-              fontSize: 14,
-            ),
-          ),
-        ),
         Column(
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -36,26 +30,25 @@ class StepDetailRow extends StatelessWidget {
               width: 20,
               height: 20,
               decoration: BoxDecoration(
-                color: TColor.secondaryColor1,
+                color: TColor.secondaryColor1, // Purple color
                 borderRadius: BorderRadius.circular(10),
               ),
               alignment: Alignment.center,
-              child: Container(
-                width: 18,
-                height: 18,
-                decoration: BoxDecoration(
-                  border: Border.all(color: TColor.white, width: 3),
-                  borderRadius: BorderRadius.circular(9),
+              child: Text(
+                steps,
+                style: TextStyle(
+                  color: TColor.white,
+                  fontSize: 12,
                 ),
               ),
             ),
             if (!isLast)
               DottedDashedLine(
                 height: 80,
-                width: 0,
+                width: 5,
                 dashColor: TColor.secondaryColor1,
                 axis: Axis.vertical,
-              )
+              ),
           ],
         ),
         const SizedBox(width: 10),
@@ -65,14 +58,14 @@ class StepDetailRow extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                sObj.steps, // Display the steps
+                'Step $steps', // Display the step number with label
                 style: TextStyle(
                   color: TColor.black,
-                  fontSize: 14,
+                  fontSize: 12,
                 ),
               ),
               Text(
-                sObj.description, // Display the description
+                description, // Display the description
                 style: TextStyle(
                   color: TColor.gray,
                   fontSize: 12,
@@ -80,7 +73,7 @@ class StepDetailRow extends StatelessWidget {
               ),
             ],
           ),
-        )
+        ),
       ],
     );
   }

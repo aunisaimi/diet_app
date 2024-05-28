@@ -19,10 +19,10 @@ class ExercisesSetSection extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          sObj["name"].toString(),
+          sObj["name"],//.toString(),
           style: TextStyle(
               color: TColor.black,
-              fontSize: 12,
+              fontSize: 16,
               fontWeight: FontWeight.w500),
         ),
         const SizedBox(height: 8),

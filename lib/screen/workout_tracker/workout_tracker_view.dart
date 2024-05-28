@@ -5,17 +5,28 @@ import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/screen/home/activity_tracker_view.dart';
 import 'package:diet_app/screen/workout_tracker/workout_detail_view.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../database/auth_service.dart';
+
 class WorkoutTrackerView extends StatefulWidget {
-  WorkoutTrackerView({Key? key}) : super(key: key);
+  final String document;
+  final String category;
+  WorkoutTrackerView({
+    Key? key,
+    required this.document,
+    required this.category}) : super(key: key);
 
   @override
   _WorkoutTrackerViewState createState() => _WorkoutTrackerViewState();
 }
 
 class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  AuthService authService = AuthService();
 
   final List<Map<String, dynamic>> latestArr = [
     {
@@ -62,37 +73,14 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
   @override
   void initState() {
     super.initState();
+    //fetchExercises();
     fetchExercise();
+    //fetchTitle();
+    fetchTitles();
   }
 
-  // Future<void> fetchExercise() async {
-  //   try {
-  //     List<String> exerciseNames = ['jumping_jack', 'plank', 'pushup','situp','imaginary_chair','wall_pushup','bicycle_kick'];
-  //     List<Map<String,dynamic>> exercisesList= [];
-  //
-  //     for(String exerciseName in exerciseNames) {
-  //       QuerySnapshot<Map<String,dynamic>> querySnapshot = await FirebaseFirestore.instance
-  //           .collection('exercises')
-  //           .doc('beginner')
-  //           .collection(exerciseName)
-  //           .get();
-  //
-  //       if (querySnapshot.docs.isNotEmpty){
-  //         querySnapshot.docs.forEach((doc) {
-  //           Map<String,dynamic> data = doc.data();
-  //           data['name'] = exerciseName; // add exercise name to the data
-  //           exercisesList.add(data);
-  //         });
-  //       }
-  //     }
-  //
-  //     setState((){
-  //       whatArr = exercisesList;
-  //     });
-  //   } catch (e){
-  //     print('Error fetching exercises: $e');
-  //   }
-  // }
+
+
   Future<void> fetchExercise() async {
     try {
       List<String> exerciseNames = ['jumping_jack', 'plank', 'pushup', 'situp', 'imaginary_chair', 'wall_pushup', 'bicycle_kick'];
@@ -111,7 +99,8 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
             data['name'] = exerciseName; // add exercise name to the data
 
             // check if the exercise with the same title already exists in the list
-            bool alreadyExists = exercisesList.any((exercise) => exercise['title'] == data['title']);
+            bool alreadyExists = exercisesList
+                .any((exercise) => exercise['title'] == data['title']);
             if(!alreadyExists){
               exercisesList.add(data);
             }
@@ -126,6 +115,40 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
     }
   }
 
+  Future<void> fetchTitles() async {
+    try {
+      // define the list of categories and the exercises within them
+      List<String> categories = ['full_body','arms','legs','abs'];
+
+      List<Map<String,dynamic>> exercisesList = [];
+
+      // Loop through each category and fetch the exercises
+      for (String category in categories){
+        QuerySnapshot<Map<String,dynamic>> querySnapshot = await _firestore
+            .collection('exercises')
+            .doc(widget.category)
+            .collection(category)
+            .get();
+
+        if(querySnapshot.docs.isNotEmpty){
+          querySnapshot.docs.forEach((doc) {
+            Map<String,dynamic> data = doc.data();
+            data['title'] = category.replaceAll('_', ''); // Add category title to the data
+            exercisesList.add(data);
+          });
+        }
+      }
+
+      setState(() {
+        whatArr = exercisesList;
+      });
+
+    } catch (e,printStack){
+      print('Error fetching exercises: $e');
+      print(printStack);
+    }
+  }
+
   Future<void> _onViewMorePressed(BuildContext context, String title) async {
     List<Map<String,dynamic>> filteredExercises = whatArr
         .where((exercise) => exercise['title'] == title)
@@ -135,10 +158,16 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
         context,
         MaterialPageRoute(
             builder: (context) =>
-                WorkoutDetailView(exercises: filteredExercises)
+                WorkoutDetailView(
+                  exercises: filteredExercises,
+                  category: '',
+                  // document: 'jumping_jack',
+                  // category: 'beginner',
+                )
         )
     );
   }
+
 
   // Future<void> _onViewMorePressed(BuildContext context, String title) async {
   //   List<Map<String,dynamic>> filteredExercises = whatArr
@@ -165,6 +194,42 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
         builder: (context) => const ActivityTrackerView(),
       ),
     );
+  }
+
+
+  Future<void> fetchTitle() async {
+    try {
+      // List<String> exerciseCategory = ['full body','arms','legs','abs']; //widget.document;
+      String exerciseCategory = widget.category; // e.g: beginner
+      String exerciseName = widget.document; // e.g: jumping_jack
+
+      print("Fetching titles for category: $exerciseCategory , "
+          "and exercise Named : $exerciseName");
+
+      DocumentSnapshot<Map<String,dynamic>> querySnapshot = await _firestore
+          .collection('exercises')
+          .doc(exerciseCategory)
+          .collection(exerciseName)
+          .doc(exerciseName)
+          .get();
+
+      if (querySnapshot.exists){
+        print('Title found for exercise name: $exerciseName');
+        Map<String,dynamic> data = querySnapshot.data() ?? {};
+
+        String title = data['title'] ?? "No title found";
+        print("Title: $title");
+
+        //data = querySnapshot.data() ?? {};
+        //print("Data: $data");
+      } else {
+        print('No document found for exercise name: $exerciseName');
+      }
+
+    } catch (e, stackTrace) {
+      print("Error fetching title : $e");
+      print(stackTrace);
+    }
   }
 
   @override
