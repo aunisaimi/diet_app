@@ -43,7 +43,7 @@ class _HomeViewState extends State<HomeView> {
   TextEditingController _firstnameController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
   TextEditingController _genderController = TextEditingController();
-  double? bmi;
+  double? bmi = 0;
   double? bmiPercentage;
   String? bmiMessage;
   String bmiStatus = "";
@@ -136,12 +136,12 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
-  String _getBMIMessage(double? bmi) {
-    if (bmi! < 18.5) {
+  String _getBMIMessage(double bmi) {
+    if (bmi < 18.5) {
       return 'Underweight';
-    } else if (bmi! >= 18.5 && bmi! < 25) {
+    } else if (bmi >= 18.5 && bmi < 25) {
       return 'Normal weight';
-    } else if (bmi! >= 25 && bmi! < 30) {
+    } else if (bmi >= 25 && bmi < 30) {
       return 'Overweight';
     } else {
       return 'Obese';
@@ -359,7 +359,7 @@ class _HomeViewState extends State<HomeView> {
                                     fontWeight: FontWeight.w700),
                               ),
                               Text(
-                                'BMI Message:${_getBMIMessage(bmi)} ',
+                                'BMI Message:${_getBMIMessage(bmi!)} ',
                                 style: TextStyle(
                                     color: TColor.white.withOpacity(0.7),
                                     fontSize: 12),
