@@ -1,12 +1,11 @@
 import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
-import 'package:diet_app/screen/home/home_view.dart';
-import 'package:diet_app/screen/meal_planner/dietandfitness/calorie_intake.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 
 class MealPlanView extends StatefulWidget {
   final int remainingCalories;
-
   const MealPlanView({super.key, required this.remainingCalories});
 
   @override
@@ -144,83 +143,83 @@ class _MealPlanViewState extends State<MealPlanView> {
         .toList();
   }
 
-  int get totalCalories {
+  int get _totalCalories {
     int total = 0;
     selectedMeals.forEach((key, meal) {
-      if (meal.isNotEmpty){
+      if (meal.isNotEmpty) {
         total += meal["calories"] as int;
       }
     });
     return total;
   }
 
-  int get totalFat {
-    int total = 0;
-    selectedMeals.forEach((key, meal) {
-      if(meal.isNotEmpty){
-        total += meal["fat"] as int;
-      }
-    });
-    return total;
+  // int get totalFat {
+  //   int total = 0;
+  //   selectedMeals.forEach((key, meal) {
+  //     if (meal.isNotEmpty) {
+  //       total += meal["fat"] as int;
+  //     }
+  //   });
+  //   return total;
+  // }
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? selectedMealsString = prefs.getString('selectedMeals');
+    if (selectedMealsString != null) {
+      setState(() {
+        selectedMeals = (jsonDecode(selectedMealsString) as Map<String, dynamic>).map((key, value) => MapEntry(key, Map<String, dynamic>.from(value)));
+      });
+    }
+  }
+
+  Future<void> _saveData() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString(
+        'selectedMeals',
+        jsonEncode(selectedMeals));
   }
 
   @override
   Widget build(BuildContext context) {
     var media = MediaQuery.of(context).size;
-    int remainingCalories = widget.remainingCalories - totalCalories;
+    int remainingCalories = widget.remainingCalories - _totalCalories;
 
     return Scaffold(
       appBar: AppBar(
         backgroundColor: TColor.white,
         centerTitle: true,
-        elevation: 0,
+        elevation: 1,
         leading: IconButton(
           onPressed: () {
             Navigator.pop(context);
           },
           icon: const Icon(
-              Icons.arrow_back_ios,
-              color: Colors.black
+            Icons.arrow_back_ios_new_rounded,
           ),
         ),
-        actions: [
-          InkWell(
-            onTap: (){
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => CalorieIntake(
-                          remainingCalories: remainingCalories))
-              );
-            },
-            child: Container(
-              margin: const EdgeInsets.all(8),
-              height: 40,
-              width: 40,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: TColor.lightGray,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.more_horiz_rounded),
-            ),
-          )
-        ],
         title: Text(
           "Meal Plan",
           style: TextStyle(
             color: TColor.black,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
       body: Column(
         children: [
           Container(
-            decoration: BoxDecoration(
-              color: TColor.white,
-              boxShadow: const [
+            decoration:
+            const BoxDecoration(
+              color: Colors.white70,
+              boxShadow: [
                 BoxShadow(
                   color: Colors.black26,
                   blurRadius: 4,
@@ -234,8 +233,8 @@ class _MealPlanViewState extends State<MealPlanView> {
                   child: RoundButton(
                     title: "Breakfast",
                     type: isActiveTab == 0
-                        ? RoundButtonType.bgGradient
-                        : RoundButtonType.bgSGradient,
+                        ? RoundButtonType.bgSGradient
+                        : RoundButtonType.bgGradient,
                     onPressed: () {
                       setState(() {
                         isActiveTab = 0;
@@ -248,8 +247,8 @@ class _MealPlanViewState extends State<MealPlanView> {
                   child: RoundButton(
                     title: "Lunch",
                     type: isActiveTab == 1
-                        ? RoundButtonType.bgGradient
-                        : RoundButtonType.bgSGradient,
+                        ? RoundButtonType.bgSGradient
+                        : RoundButtonType.bgGradient,
                     onPressed: () {
                       setState(() {
                         isActiveTab = 1;
@@ -262,8 +261,8 @@ class _MealPlanViewState extends State<MealPlanView> {
                   child: RoundButton(
                     title: "Snack",
                     type: isActiveTab == 2
-                        ? RoundButtonType.bgGradient
-                        : RoundButtonType.bgSGradient,
+                        ? RoundButtonType.bgSGradient
+                        : RoundButtonType.bgGradient,
                     onPressed: () {
                       setState(() {
                         isActiveTab = 2;
@@ -276,8 +275,8 @@ class _MealPlanViewState extends State<MealPlanView> {
                   child: RoundButton(
                     title: "Dinner",
                     type: isActiveTab == 3
-                        ? RoundButtonType.bgGradient
-                        : RoundButtonType.bgSGradient,
+                        ? RoundButtonType.bgSGradient
+                        : RoundButtonType.bgGradient,
                     onPressed: () {
                       setState(() {
                         isActiveTab = 3;
@@ -290,7 +289,7 @@ class _MealPlanViewState extends State<MealPlanView> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 15),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
             child: TextField(
               controller: searchController,
               decoration: InputDecoration(
@@ -308,34 +307,25 @@ class _MealPlanViewState extends State<MealPlanView> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Column(
               children: [
                 Text(
-                  "Total calories: $totalCalories kcal",
+                  "Total calories: $_totalCalories kcal",
                   style: TextStyle(
                     color: TColor.black,
-                    fontSize: 20,
                     fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Text(
-                  'Remaining Calories: $remainingCalories kcal',
-                  style: TextStyle(
-                    color: TColor.gray,
                     fontSize: 18,
-                    fontWeight: FontWeight.w500,
                   ),
                 ),
                 Text(
-                  'Total Fat: $totalFat g',
+                  "Remaining calories: $remainingCalories kcal",
                   style: TextStyle(
                     color: TColor.gray,
-                    fontSize: 16,
                     fontWeight: FontWeight.w500,
+                    fontSize: 16,
                   ),
                 ),
-                CalorieIntake(remainingCalories: remainingCalories),
               ],
             ),
           ),
@@ -345,7 +335,8 @@ class _MealPlanViewState extends State<MealPlanView> {
               itemCount: filteredMeals.length,
               itemBuilder: (context, index) {
                 var meal = filteredMeals[index];
-                bool isSelected = selectedMeals[selectedCategory]!["name"] == meal["name"];
+                bool isSelected =
+                    selectedMeals[selectedCategory]!["name"] == meal["name"];
                 return GestureDetector(
                   onTap: () {
                     setState(() {
@@ -354,6 +345,7 @@ class _MealPlanViewState extends State<MealPlanView> {
                       } else {
                         selectedMeals[selectedCategory] = meal;
                       }
+                      _saveData();
                     });
                   },
                   child: Container(
