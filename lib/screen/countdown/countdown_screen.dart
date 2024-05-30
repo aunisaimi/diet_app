@@ -8,7 +8,6 @@ import '../../common/widget/Round_button.dart';
 
 class CountdownScreen extends StatefulWidget {
   final String duration;
-
   const CountdownScreen({
     Key? key,
     required this.duration
@@ -52,7 +51,7 @@ class _CountdownScreenState extends State<CountdownScreen>
       final durationInSeconds = int.parse(widget.duration);
       controller = AnimationController(
         vsync: this,
-        duration: Duration(minutes: durationInSeconds),
+        duration: Duration(seconds: durationInSeconds),
       );
     } catch (e) {
       print('Error parsing duration: $e');

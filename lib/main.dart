@@ -15,17 +15,6 @@ void main() async {
 }
 
 class MyApp extends StatelessWidget {
-  // Widget getScreenId(){
-  //   return StreamBuilder(
-  //       stream: FirebaseAuth.instance.authStateChanges(),
-  //       builder: (BuildContext context, snapshot) {
-  //         if(snapshot.hasData){
-  //           return FeedScreen(currentUserId: snapshot.data!.uid);
-  //         } else {
-  //           return const LoginScreen(); //temporary
-  //         }
-  //       });
-  // }
   const MyApp({Key? key});
 
   Future<Widget> _getInitialScreen() async {
@@ -39,23 +28,6 @@ class MyApp extends StatelessWidget {
       return StartedView();
     }
   }
-
-  // @override
-  // Widget build(BuildContext context) {
-  //   return MaterialApp(
-  //     title: 'Fitness with Me',
-  //     debugShowCheckedModeBanner: false,
-  //     theme: ThemeData(
-  //       primaryColor: TColor.primaryColor1,
-  //       fontFamily: "Poppins"
-  //     ),
-  //
-  //     //home:  const MainTabView(),
-  //     home:  const StartedView(),
-  //      //body: FeedScreen(currentUserId: '')
-  //
-  //   );
-  // }
 
   @override
   Widget build(BuildContext context) {

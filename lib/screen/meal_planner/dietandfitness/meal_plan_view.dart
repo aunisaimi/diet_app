@@ -1,3 +1,4 @@
+import 'package:diet_app/Helpers/preferences_helper.dart';
 import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
 import 'package:flutter/material.dart';
@@ -170,20 +171,25 @@ class _MealPlanViewState extends State<MealPlanView> {
   }
 
   Future<void> _loadData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? selectedMealsString = prefs.getString('selectedMeals');
-    if (selectedMealsString != null) {
-      setState(() {
-        selectedMeals = (jsonDecode(selectedMealsString) as Map<String, dynamic>).map((key, value) => MapEntry(key, Map<String, dynamic>.from(value)));
-      });
-    }
+    var meals = await PreferencesHelper.loadSelectedMeals();
+    setState(() {
+      selectedMeals = meals;
+    });
+    // SharedPreferences prefs = await SharedPreferences.getInstance();
+    // String? selectedMealsString = prefs.getString('selectedMeals');
+    // if (selectedMealsString != null) {
+    //   setState(() {
+    //     selectedMeals = (jsonDecode(selectedMealsString) as Map<String, dynamic>).map((key, value) => MapEntry(key, Map<String, dynamic>.from(value)));
+    //   });
+    // }
   }
 
   Future<void> _saveData() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setString(
-        'selectedMeals',
-        jsonEncode(selectedMeals));
+    await PreferencesHelper.saveSelectedMeals(selectedMeals);
+    // SharedPreferences prefs = await SharedPreferences.getInstance();
+    // await prefs.setString(
+    //     'selectedMeals',
+    //     jsonEncode(selectedMeals));
   }
 
   @override
