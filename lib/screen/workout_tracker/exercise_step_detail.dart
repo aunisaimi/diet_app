@@ -5,6 +5,7 @@ import 'package:diet_app/common/common_widget/step_detail_row.dart';
 import 'package:diet_app/model/exercises.dart';
 import 'package:diet_app/model/steps.dart';
 import 'package:diet_app/screen/countdown/countdown_screen.dart';
+import 'package:diet_app/screen/countdown/stopwatch_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -18,21 +19,28 @@ class ExercisesStepDetails extends StatefulWidget {
   //final Map eObj; // exercise obj contains details about exercise
   final String image;
   final String? duration;
+  //final String? type;
+  String value;
   final String document;
   final String difficulty;
   final String exerciseName;
   final String? description;
   final String steps;
 
-  const ExercisesStepDetails({
+  String? type;
+
+   ExercisesStepDetails({
     Key? key,
     required this.eObj,
     required this.image,
     this.duration,
+    required this.value,
     required this.document,
     required this.difficulty,
     required this.exerciseName,
-    this.description, required this.steps
+    this.description,
+    required this.steps,
+    this.type
   }) : super(key: key);
 
   @override
@@ -43,63 +51,138 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   AuthService authService = AuthService();
+  String? exerciseType;
+  String? exerciseValue;
 
   List<StepModel> stepArr = []; // list to store steps of exercises
+
+  // Future<void> fetchSteps() async {
+  //   try {
+  //     String exerciseName = widget.document;
+  //     print('Fetching steps for exercise: $exerciseName');
+  //
+  //     DocumentSnapshot<Map<String, dynamic>> querySnapshot = await _firestore
+  //         .collection('exercises')
+  //         .doc('beginner') // Assuming 'beginner' is the level, replace it if needed
+  //         .collection(exerciseName) // Accessing 'jumping_jack', 'plank', or 'push_up'
+  //         .doc(exerciseName) // Accessing the specific exercise document
+  //         .collection('steps') // Accessing the 'steps' subcollection
+  //         .doc('steps') // Specific document within 'steps' collection
+  //         .get();
+  //
+  //     if (querySnapshot.exists) {
+  //       print('Steps found for exercise: $exerciseName');
+  //       Map<String, dynamic> data = {};
+  //
+  //       /*for (var doc in querySnapshot) {
+  //         data.addAll(doc.data());
+  //       }*/
+  //       data = querySnapshot.data() ?? {};
+  //
+  //       print("Data: $data");
+  //
+  //       List<String> orderedKeys = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth'];
+  //
+  //       // Sort the keys in the correct order
+  //       List<String> sortedKeys = data.keys.toList();
+  //       sortedKeys.sort((a, b) {
+  //         return orderedKeys.indexOf(a).compareTo(orderedKeys.indexOf(b));
+  //       });
+  //
+  //       // Create the steps list in the correct order
+  //       List<StepModel> stepsList = sortedKeys.map((key) {
+  //         String stepNumber = key;
+  //         String stepDescription = data[key] as String;
+  //
+  //         // Create a map to match the expected structure for StepModel.fromMap
+  //         Map<String, dynamic> stepData = {
+  //           'steps': stepNumber,
+  //           'description': stepDescription,
+  //         };
+  //
+  //         return StepModel.fromMap(stepData);
+  //       }).toList();
+  //
+  //       setState(() {
+  //         stepArr = stepsList;
+  //       });
+  //     } else {
+  //       print('No steps found for the exercise: $exerciseName');
+  //     }
+  //   } catch (e, printStack) {
+  //     print('Error fetching steps: $e');
+  //     print(printStack);
+  //   }
+  // }
 
   Future<void> fetchSteps() async {
     try {
       String exerciseName = widget.document;
       print('Fetching steps for exercise: $exerciseName');
 
-      DocumentSnapshot<Map<String, dynamic>> querySnapshot = await _firestore
+      DocumentSnapshot<Map<String,dynamic>> exerciseDoc = await _firestore
           .collection('exercises')
-          .doc('beginner') // Assuming 'beginner' is the level, replace it if needed
-          .collection(exerciseName) // Accessing 'jumping_jack', 'plank', or 'push_up'
-          .doc(exerciseName) // Accessing the specific exercise document
-          .collection('steps') // Accessing the 'steps' subcollection
-          .doc('steps') // Specific document within 'steps' collection
+          .doc('beginner')
+          .collection(exerciseName)
+          .doc(exerciseName)
           .get();
 
-      if (querySnapshot.exists) {
-        print('Steps found for exercise: $exerciseName');
-        Map<String, dynamic> data = {};
+      if (exerciseDoc.exists){
+        print("Exercise found: $exerciseName");
+        Map<String,dynamic> data = exerciseDoc.data() ?? {};
 
-        /*for (var doc in querySnapshot) {
-          data.addAll(doc.data());
-        }*/
-        data = querySnapshot.data() ?? {};
-
-        print("Data: $data");
-
-        List<String> orderedKeys = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth'];
-
-        // Sort the keys in the correct order
-        List<String> sortedKeys = data.keys.toList();
-        sortedKeys.sort((a, b) {
-          return orderedKeys.indexOf(a).compareTo(orderedKeys.indexOf(b));
-        });
-
-        // Create the steps list in the correct order
-        List<StepModel> stepsList = sortedKeys.map((key) {
-          String stepNumber = key;
-          String stepDescription = data[key] as String;
-
-          // Create a map to match the expected structure for StepModel.fromMap
-          Map<String, dynamic> stepData = {
-            'steps': stepNumber,
-            'description': stepDescription,
-          };
-
-          return StepModel.fromMap(stepData);
-        }).toList();
+        // Extracting exercise type and duration/freq
+        String type = data['type'];
+        String value = data['value'];
 
         setState(() {
-          stepArr = stepsList;
+          widget.type = type;
+          widget.value = value;
         });
+
+        // Fetching steps
+        DocumentSnapshot<Map<String,dynamic>> stepsDoc = await exerciseDoc
+            .reference
+            .collection('steps')
+            .doc('steps')
+            .get();
+
+        if (stepsDoc.exists){
+          print('Steps found for exercise: $exerciseName');
+          Map<String,dynamic> stepsData = stepsDoc.data() ?? {};
+
+          List<String> orderedKeys = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth'];
+
+          // Sort the keys in the correct order
+          List<String> sortedKeys = stepsData.keys.toList();
+          sortedKeys.sort((a, b) {
+            return orderedKeys.indexOf(a).compareTo(orderedKeys.indexOf(b));
+          });
+
+          // Create the steps list in the correct order
+          List<StepModel> stepsList = sortedKeys.map((key) {
+            String stepNumber = key;
+            String stepDescription = stepsData[key] as String;
+
+            // Create a map to match the expected structure for StepModel.fromMap
+            Map<String, dynamic> stepData = {
+              'steps': stepNumber,
+              'description': stepDescription,
+            };
+
+            return StepModel.fromMap(stepData);
+          }).toList();
+
+          setState(() {
+            stepArr = stepsList;
+          });
+        } else {
+          print('No steps found for the exercise: $exerciseName');
+        }
       } else {
-        print('No steps found for the exercise: $exerciseName');
+        print('No exercise found: $exerciseName');
       }
-    } catch (e, printStack) {
+    }  catch (e, printStack) {
       print('Error fetching steps: $e');
       print(printStack);
     }
@@ -202,23 +285,6 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
                 ),
               ),
               const SizedBox(height: 15),
-              // ReadMoreText(
-              //   'A jumping jack, also known as a star jump and called a side-straddle hop in the US military, is a physical jumping exercise performed by jumping to a position with the legs spread wide A jumping jack, also known as a star jump and called a side-straddle hop in the US military, is a physical jumping exercise performed by jumping to a position with the legs spread wide',
-              //   trimLines: 4,
-              //   colorClickableText: TColor.black,
-              //   trimMode: TrimMode.Line,
-              //   trimCollapsedText: ' Read More ...',
-              //   trimExpandedText: ' Read Less',
-              //   style: TextStyle(
-              //     color: TColor.gray,
-              //     fontSize: 12,
-              //   ),
-              //   moreStyle: TextStyle(
-              //     fontSize: 12,
-              //     color: TColor.primaryColor1,
-              //     fontWeight: FontWeight.w700,
-              //   ),
-              // ),
               Text(
                 widget.eObj['description'],
                 style: TextStyle(
@@ -333,13 +399,27 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
                 title: "Start",
                 elevation: 1,
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                      const CountdownScreen(duration: '5'),
-                    ),
-                  );
+                 if (widget.type == 'duration' && widget.value != null) {
+                   Navigator.push(
+                       context,
+                       MaterialPageRoute(
+                           builder: (context) => CountdownScreen(
+                               duration: widget.value!)
+                       )
+                   );
+                 } else if (widget.type == 'frequency'){
+                   Navigator.push(
+                       context,
+                       MaterialPageRoute(
+                           builder: (context) =>
+                               StopwatchScreen(
+                                   exerciseName: widget.exerciseName)
+                       )
+                   );
+                 }
+                 else {
+                   print('Invalid exercise type');
+                 }
                 },
               ),
               const SizedBox(height: 15),

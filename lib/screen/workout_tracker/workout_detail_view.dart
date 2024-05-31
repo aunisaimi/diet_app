@@ -9,14 +9,16 @@ import '../../common/common_widget/icon_title_next_row.dart';
 
 class WorkoutDetailView extends StatefulWidget {
   final List<Map<String, dynamic>> exercises;
+  final String? title;
   // final String document;
-   final String category;
+  final String category;
 
   const WorkoutDetailView({
     Key? key,
     required this.exercises,
     // required this.document,
-     required this.category,
+    required this.category,
+    this.title,
   }) : super(key: key);
 
   @override
@@ -44,6 +46,7 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
       "title": "Bubur",
     },
   ];
+  List<String> title = ['full body', 'arms','legs','abs'];
 
   Map<String, List<String>> durations = {
     "Beginner": [
@@ -57,90 +60,9 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
     ],
   };
 
-  List exercisesArr = [
-    {
-      "name": "Set 1",
-      "set": [
-        {
-          "image": "assets/img/run_treadmill.jpg",
-          "title": "Warm Up",
-          "value": "05:00",
-          "document": "warm_up"
-        },
-        {
-          "image": "assets/img/jumping_jack.png",
-          "title": "Jumping Jack",
-          "value": "12",
-          "document": "jumping_jack"
-        },
-        {
-          "image": "assets/img/Workout1.png",
-          "title": "Skipping",
-          "value": "15x",
-          "document": "skipping"
-        },
-        {
-          "image": "assets/img/squat.jpg",
-          "title": "Squats",
-          "value": "20x",
-          "document": "squat"
-        },
-        {
-          "image": "assets/img/push_up.jpg",
-          "title": "Push Up",
-          "value": "25x",
-          "document": "push_up"
-        },
-        {
-          "image": "assets/img/rest.jpg",
-          "title": "Rest and Drink",
-          "value": "02:00",
-          "document": "rest_drink"
-        },
-      ],
-    },
-    {
-      "name": "Set 2",
-      "set": [
-        {
-          "image": "assets/img/plank.png",
-          "title": "Plank",
-          "value": "00:25",
-        },
-        {
-          "image": "assets/img/scissor_kick.png",
-          "title": "Scissor Kick",
-          "value": "12x",
-        },
-        {
-          "image": "assets/img/imaginary_chair.jpg",
-          "title": "Imaginary Chair",
-          "value": "00:30",
-        },
-        {
-          "image": "assets/img/explosive_jump_m.jpg",
-          "title": "Explosive Jump",
-          "value": "15x",
-        },
-        {
-          "image": "assets/img/rest.jpg",
-          "title": "Rest and Drink",
-          "value": "02:00",
-        },
-      ],
-    }
-  ];
 
   // dummy data for illustration
-  final Map<String,dynamic> sObj = {
-    'title': 'Jumping Jack',
-  };
-  // final String image = 'assets/images/jumping_jack.png';
-  // final String duration = '5 minutes';
-  // final String exercise = 'Jumping Jack';
-  // final String difficulty = 'Easy';
-  // final String document = 'jumping_jack_document_id';
-
+  final Map<String,dynamic> sObj = {};
   Map<String, List<Map<String, dynamic>>> _groupedExercises = {};
 
   @override
@@ -151,87 +73,40 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
       _difficulty = "Beginner";
     });
     _fetchAndGroupExercisesByTitle();
-    _groupExercisesByTitle();
+    //_groupExercisesByTitle();
     //fetchTitle();
   }
 
   Future<void> _fetchAndGroupExercisesByTitle() async {
     try {
-      QuerySnapshot<Map<String,dynamic>> querySnapshot = await _firestore
-          .collection('exercises')
-          .doc(widget.category)
-          .collection('jumping_jack')
-          .get();
-
       Map<String,List<Map<String,dynamic>>> groupedExercises = {};
 
-      for(var doc in querySnapshot.docs){
-        var exercise = doc.data();
-        exercise['id'] = doc.id; // add document id to the exercise data
-        String title = exercise['title'];
-        if(groupedExercises.containsKey(title)){
-          groupedExercises[title]!.add(exercise);
+      for (var exercise in widget.exercises) {
+        print('Processing exercise: $exercise');
+
+        if(exercise.containsKey('title')){
+          String title = exercise['title'];
+          if (groupedExercises.containsKey(title)) {
+            groupedExercises[title]!.add(exercise);
+          } else {
+            groupedExercises[title] = [exercise];
+          }
         } else {
-          groupedExercises[title] = [exercise];
+          print('Exercise missing title: $exercise');
         }
       }
+
       setState(() {
         _groupedExercises = groupedExercises;
       });
+
+      print('Grouped exercises: $_groupedExercises');
     } catch (e,printStack){
       print("Error fetching exercises: $e");
       print(printStack);
     }
   }
 
-  void _groupExercisesByTitle() {
-    for (var exercise in widget.exercises) {
-      String title = exercise['title'];
-      print("Title fetched: $title");
-      if (_groupedExercises.containsKey(title)) {
-        _groupedExercises[title]!.add(exercise);
-      } else {
-        _groupedExercises[title] = [exercise];
-      }
-    }
-  }
-
-
-
-  // Future<void> fetchTitle() async {
-  //   try {
-  //    // List<String> exerciseCategory = ['full body','arms','legs','abs']; //widget.document;
-  //     String exerciseCategory = widget.category; // e.g: beginner
-  //     String exerciseName = widget.document; // e.g: jumping_jack
-  //
-  //     print("Fetching titles for category: $exerciseCategory , "
-  //         "and exercise Named : $exerciseName");
-  //
-  //     DocumentSnapshot<Map<String,dynamic>> querySnapshot = await _firestore
-  //             .collection('exercises')
-  //             .doc(exerciseCategory)
-  //             .collection(exerciseName)
-  //             .doc(exerciseName)
-  //             .get();
-  //
-  //     if (querySnapshot.exists){
-  //       print('Title found for exercise name: $exerciseName');
-  //       Map<String,dynamic> data = querySnapshot.data() ?? {};
-  //
-  //       String title = data['title'] ?? "No title found";
-  //       print("Title: $title");
-  //
-  //       //data = querySnapshot.data() ?? {};
-  //       //print("Data: $data");
-  //     } else {
-  //       print('No document found for exercise name: $exerciseName');
-  //     }
-  //
-  //   } catch (e, stackTrace) {
-  //     print("Error fetching title : $e");
-  //     print(stackTrace);
-  //   }
-  // }
   @override
   Widget build(BuildContext context) {
     var media = MediaQuery.of(context).size;
@@ -444,7 +319,6 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                         ],
                       ),
 
-
                       ListView.builder(
                         padding: EdgeInsets.zero,
                         physics: const NeverScrollableScrollPhysics(),
@@ -456,14 +330,6 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // Text(
-                              //   title,
-                              //   style: TextStyle(
-                              //     color: TColor.gray,
-                              //     fontSize: 16,
-                              //     fontWeight: FontWeight.bold,
-                              //   ),
-                              // ),
                               ListView.builder(
                                 padding: EdgeInsets.zero,
                                 physics: const NeverScrollableScrollPhysics(),
@@ -487,16 +353,17 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
 
                                     // Assign default values if any of the fields are null
                                     String image = sObj["image"] ?? '';
-                                   // String duration = sObj["duration"] ?? '';
+                                    // String duration = sObj["duration"] ?? '';
                                     String exercise = sObj["title"] ?? '';
                                     String document = sObj["name"] ?? '';
-                                    //String steps = sObj["steps"] ?? '';
+                                    String type = sObj["type"] ?? '';
+                                    String value = sObj["value"] ?? '';
 
                                     print('Image: ${sObj.containsKey('image') ? sObj['image'] : 'Key not found'}');
-                                    //print('Duration: ${sObj.containsKey('duration') ? sObj['duration'] : 'Key not found'}');
+                                    print('Value: ${sObj.containsKey('value') ? sObj['value'] : 'Key not found'}');
                                     print('Exercise: ${sObj.containsKey('title') ? sObj['title'] : 'Key not found'}');
                                     print('Document: ${sObj.containsKey('name') ? sObj['name'] : 'Key not found'}');
-                                    //print('Steps: ${sObj.containsValue('steps') ? sObj['steps'] : 'Key not found'}');
+                                    print('Type: ${sObj.containsKey('type') ? sObj['type'] : 'Key not found'}');
 
                                     // Debug print to check the exercise name
                                     print('Exercise name: $document');
@@ -519,6 +386,8 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                                                       document: document,
                                                       exerciseName: exercise,
                                                       steps: '',
+                                                      type: type,
+                                                      value: value,
                                                     ),
                                                   ),
                                                 );
@@ -542,15 +411,11 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                                                   difficulty: _difficulty,
                                                   document: document,
                                                   steps: '',
+                                                  value: value,
+                                                  type: type,
                                                 ),
                                               ),
                                             );
-                                            // if(exercise.isNotEmpty){
-                                            //
-                                            // }
-                                            // else {
-                                            //   print("Exercise name is empty for exercise object: $sObj");
-                                            // }
                                           },
                                         ),
                                       ],

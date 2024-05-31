@@ -23,23 +23,6 @@ class AuthService extends ChangeNotifier{
     }
   }
 
-
-  // Future<User?> signInWithEmailandPassword(
-  //     BuildContext context, String email, String password) async {
-  //   try {
-  //     // sign in
-  //     final UserCredential userCredential =
-  //     await _auth.signInWithEmailAndPassword(
-  //         email: email,
-  //         password: password);
-  //
-  //     return userCredential.user;
-  //
-  //   } on FirebaseAuthException catch (e){
-  //     throw Exception(e.code);
-  //   }
-  // }
-
   void handleLoginSuccess(BuildContext context) async {
     Navigator.push(
         context,
