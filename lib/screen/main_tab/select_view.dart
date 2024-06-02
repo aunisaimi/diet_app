@@ -1,5 +1,6 @@
 
 import 'package:diet_app/screen/meal_planner/dietandfitness/meal_plan_view.dart';
+import 'package:diet_app/screen/water_intake/water_intake.dart';
 import 'package:diet_app/screen/workout_tracker/add_exercise.dart';
 import 'package:flutter/material.dart';
 
@@ -28,7 +29,7 @@ class SelectView extends StatelessWidget {
                       builder: (context) =>
                           WorkoutTrackerView(
                             document: '',
-                            category: '',),
+                            title: ''),
                     ),
                   );
                 }),
@@ -46,7 +47,20 @@ class SelectView extends StatelessWidget {
                   );
                 }),
 
-            const SizedBox(height: 15,),
+            const SizedBox(height: 15),
+
+            RoundButton(
+                title: "Water Intake",
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const WaterIntake(),
+                    ),
+                  );
+                }),
+
+            const SizedBox(height: 15),
 
             RoundButton(
                 title: "Add Workout (Trainer)",
@@ -57,7 +71,9 @@ class SelectView extends StatelessWidget {
                       builder: (context) => const AddExercise(),
                     ),
                   );
-                })
+                }),
+
+
           ],
         ),
       ),

@@ -5,6 +5,7 @@ import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/screen/home/activity_tracker_view.dart';
 import 'package:diet_app/screen/workout_tracker/workout_detail_view.dart';
+import 'package:diet_app/screen/workout_tracker/workout_schedule_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -337,7 +338,7 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) =>
-                                    const ActivityTrackerView())),
+                                    const WorkoutScheduleView())),
                           ),
                         )
                       ],

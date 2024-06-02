@@ -1,88 +1,86 @@
-import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
+import 'package:diet_app/common/common.dart';
 import 'package:diet_app/screen/workout_tracker/add_schedule_view.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../../common/common.dart';
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:table_calendar/table_calendar.dart';
+
+import '../../common/RoundButton.dart';
 
 class WorkoutScheduleView extends StatefulWidget {
-  const WorkoutScheduleView({
-    Key? key,
-  }) : super(key: key);
+  const WorkoutScheduleView({super.key});
 
   @override
   State<WorkoutScheduleView> createState() => _WorkoutScheduleViewState();
 }
 
 class _WorkoutScheduleViewState extends State<WorkoutScheduleView> {
-  // CalendarAgendaController _calendarAgendaControllerAppBar =
-  // CalendarAgendaController();
-  late DateTime _selectedDateAppBBar;
+  late DateTime _selectedDate;
+  CalendarFormat _calendarFormat = CalendarFormat.week;
 
-  List eventArr = [
-    {
-      "name": "Ab Workout",
-      "start_time": "25/05/2023 07:30 AM",
-    },
-    {
-      "name": "Upperbody Workout",
-      "start_time": "25/05/2023 09:00 AM",
-    },
-    {
-      "name": "Lowerbody Workout",
-      "start_time": "25/05/2023 03:00 PM",
-    },
-    {
-      "name": "Ab Workout",
-      "start_time": "26/05/2023 07:30 AM",
-    },
-    {
-      "name": "Upperbody Workout",
-      "start_time": "26/05/2023 09:00 AM",
-    },
-    {
-      "name": "Lowerbody Workout",
-      "start_time": "26/05/2023 03:00 PM",
-    },
-    {
-      "name": "Ab Workout",
-      "start_time": "27/05/2023 07:30 AM",
-    },
-    {
-      "name": "Upperbody Workout",
-      "start_time": "27/05/2023 09:00 AM",
-    },
-    {
-      "name": "Lowerbody Workout",
-      "start_time": "27/05/2023 03:00 PM",
-    }
-  ];
+  List<Map<String, dynamic>> eventArr = [];
 
-  List selectDayEventArr = [];
+  // Map to store schedules based on dates
+  Map<DateTime, List<Map<String, dynamic>>> schedules = {};
+
+  List<Map<String, dynamic>> selectDayEventArr = [];
 
   @override
   void initState() {
     super.initState();
-    _selectedDateAppBBar = DateTime.now();
+    _selectedDate = DateTime.now();
+    setDayEventWorkoutList();
+    _loadWorkouts();
+  }
+
+  Future<void> _loadWorkouts() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    List<String> workouts = prefs.getStringList('workouts') ?? [];
+    for (String workout in workouts){
+      List<String> split = workout.split('|');
+      String name = split[0];
+      DateTime date = DateTime.parse(split[1]);
+      DateTime startDate = dateToStartDate(date);
+      if(schedules.containsKey(startDate)){
+        schedules[startDate]!.add({"name": name, "date": date});
+      } else {
+        schedules[startDate] = [{"name": name, "date": date}];
+      }
+    }
     setDayEventWorkoutList();
   }
 
+  // void setDayEventWorkoutList() async {
+  //   var date = dateToStartDate(_selectedDate);
+  //   selectDayEventArr = eventArr.map((wObj) {
+  //     return {
+  //       "name": wObj["name"],
+  //       "start_time": wObj["start_time"],
+  //       "date": stringToDate(
+  //           wObj["start_time"].toString(),
+  //           formatStr: "dd/MM/yyyy hh:mm:aa")
+  //     };
+  //   }).where((wObj) {
+  //     return dateToStartDate(wObj["date"] as DateTime) == date;
+  //   }).toList();
+  //
+  //   if (mounted) {
+  //     setState(() {});
+  //   }
+  // }
+
   void setDayEventWorkoutList() {
-    var date = dateToStartDate(_selectedDateAppBBar);
-    selectDayEventArr = eventArr.map((wObj) {
-      return {
-        "name": wObj["name"],
-        "start_time": wObj["start_time"],
-        "date": stringToDate(wObj["start_time"].toString(),
-            formatStr: "dd/MM/yyyy hh:mm aa")
-      };
-    }).where((wObj) {
-      return dateToStartDate(wObj["date"] as DateTime) == date;
-    }).toList();
+    var date = dateToStartDate(_selectedDate);
+    selectDayEventArr = schedules[date] ?? [];
 
     if (mounted) {
       setState(() {});
     }
+  }
+
+  DateTime dateToStartDate(DateTime date) {
+    return DateTime(date.year, date.month, date.day);
   }
 
   @override
@@ -105,88 +103,51 @@ class _WorkoutScheduleViewState extends State<WorkoutScheduleView> {
             decoration: BoxDecoration(
                 color: TColor.lightGray,
                 borderRadius: BorderRadius.circular(10)),
-            child: Image.asset(
-              "assets/img/black_btn.png",
-              width: 15,
-              height: 15,
-              fit: BoxFit.contain,
-            ),
+            child:IconButton(
+                onPressed: (){
+                  Navigator.pop(context);
+                },
+                icon: const Icon(Icons.arrow_back_ios_rounded))
           ),
         ),
         title: Text(
           "Workout Schedule",
           style: TextStyle(
-              color: TColor.black, fontSize: 16, fontWeight: FontWeight.w700),
+              color: TColor.black,
+              fontSize: 16,
+              fontWeight: FontWeight.w700),
         ),
-        actions: [
-          InkWell(
-            onTap: () {},
-            child: Container(
-              margin: const EdgeInsets.all(8),
-              height: 40,
-              width: 40,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                  color: TColor.lightGray,
-                  borderRadius: BorderRadius.circular(10)),
-              child: Image.asset(
-                "assets/img/more_btn.png",
-                width: 15,
-                height: 15,
-                fit: BoxFit.contain,
-              ),
-            ),
-          )
-        ],
       ),
       backgroundColor: TColor.white,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // CalendarAgenda(
-          //   controller: _calendarAgendaControllerAppBar,
-          //   appbar: false,
-          //   selectedDayPosition: SelectedDayPosition.center,
-          //   leading: IconButton(
-          //       onPressed: () {},
-          //       icon: Icon(Icons.chevron_left)),
-          //   training: IconButton(
-          //       onPressed: () {},
-          //       icon: Icon(Icons.chevron_right)),
-          //   weekDay: WeekDay.short,
-          //   dayNameFontSize: 12,
-          //   dayNumberFontSize: 16,
-          //   dayBGColor: Colors.grey.withOpacity(0.15),
-          //   titleSpaceBetween: 15,
-          //   backgroundColor: Colors.transparent,
-          //   // fullCalendar: false,
-          //   fullCalendarScroll: FullCalendarScroll.horizontal,
-          //   fullCalendarDay: WeekDay.short,
-          //   selectedDateColor: Colors.white,
-          //   dateColor: Colors.black,
-          //   locale: 'en',
-          //
-          //   initialDate: DateTime.now(),
-          //   calendarEventColor: TColor.primaryColor2,
-          //   firstDate: DateTime.now().subtract(const Duration(days: 140)),
-          //   lastDate: DateTime.now().add(const Duration(days: 60)),
-          //
-          //   onDateSelected: (date) {
-          //     _selectedDateAppBBar = date;
-          //     setDayEventWorkoutList();
-          //   },
-          //   selectedDayLogo: Container(
-          //     width: double.maxFinite,
-          //     height: double.maxFinite,
-          //     decoration: BoxDecoration(
-          //       gradient: LinearGradient(
-          //           colors: TColor.primaryG,
-          //           begin: Alignment.topCenter,
-          //           end: Alignment.bottomCenter),
-          //       borderRadius: BorderRadius.circular(10.0),
-          //     ),
-          //   ),
-          // ),
+          TableCalendar(
+            firstDay: DateTime.utc(2020, 1, 1),
+            lastDay: DateTime.utc(2030, 12, 31),
+            focusedDay: _selectedDate,
+            calendarFormat: _calendarFormat,
+            selectedDayPredicate: (day) {
+              return isSameDay(_selectedDate, day);
+            },
+            onDaySelected: (selectedDay, focusedDay) {
+              setState(() {
+                _selectedDate = selectedDay;
+                _calendarFormat = CalendarFormat.week;
+                setDayEventWorkoutList();
+              });
+            },
+            onFormatChanged: (format) {
+              if (_calendarFormat != format) {
+                setState(() {
+                  _calendarFormat = format;
+                });
+              }
+            },
+            onPageChanged: (focusedDay) {
+              _selectedDate = focusedDay;
+            },
+          ),
           Expanded(
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
@@ -235,10 +196,13 @@ class _WorkoutScheduleViewState extends State<WorkoutScheduleView> {
                                               context: context,
                                               builder: (context) {
                                                 return AlertDialog(
-                                                  backgroundColor: Colors.transparent,
+                                                  backgroundColor:
+                                                  Colors.transparent,
                                                   contentPadding: EdgeInsets.zero,
                                                   content: Container(
-                                                    padding: const EdgeInsets.symmetric( vertical:15 , horizontal: 20 ),
+                                                    padding:
+                                                    const EdgeInsets.symmetric(
+                                                        vertical: 15, horizontal: 20),
                                                     decoration: BoxDecoration(
                                                       color: TColor.white,
                                                       borderRadius:
@@ -246,8 +210,7 @@ class _WorkoutScheduleViewState extends State<WorkoutScheduleView> {
                                                     ),
                                                     child: Column(
                                                       mainAxisSize: MainAxisSize.min,
-                                                      crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
+                                                      crossAxisAlignment: CrossAxisAlignment.start,
                                                       children: [
                                                         Row(
                                                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -259,25 +222,20 @@ class _WorkoutScheduleViewState extends State<WorkoutScheduleView> {
                                                               },
                                                               child: Container(
                                                                 margin:
-                                                                const EdgeInsets
-                                                                    .all(8),
+                                                                const EdgeInsets.all(8),
                                                                 height: 40,
                                                                 width: 40,
-                                                                alignment:
-                                                                Alignment.center,
+                                                                alignment: Alignment.center,
                                                                 decoration: BoxDecoration(
-                                                                    color: TColor
-                                                                        .lightGray,
-                                                                    borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                        10)),
-                                                                child: Image.asset(
-                                                                  "assets/img/closed_btn.png",
-                                                                  width: 15,
-                                                                  height: 15,
-                                                                  fit: BoxFit.contain,
-                                                                ),
+                                                                    color: TColor.lightGray,
+                                                                    borderRadius: BorderRadius.circular(10)),
+                                                                child: IconButton(
+                                                                  onPressed: () {
+                                                                    Navigator.pop(context);
+                                                                  },
+                                                                  icon: const Icon(Icons.close),
+
+                                                                )
                                                               ),
                                                             ),
                                                             Text(
@@ -285,40 +243,13 @@ class _WorkoutScheduleViewState extends State<WorkoutScheduleView> {
                                                               style: TextStyle(
                                                                   color: TColor.black,
                                                                   fontSize: 16,
-                                                                  fontWeight:
-                                                                  FontWeight
-                                                                      .w700),
+                                                                  fontWeight: FontWeight.w700),
                                                             ),
-                                                            InkWell(
-                                                              onTap: () {},
-                                                              child: Container(
-                                                                margin:
-                                                                const EdgeInsets
-                                                                    .all(8),
-                                                                height: 40,
-                                                                width: 40,
-                                                                alignment:
-                                                                Alignment.center,
-                                                                decoration: BoxDecoration(
-                                                                    color: TColor
-                                                                        .lightGray,
-                                                                    borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                        10)),
-                                                                child: Image.asset(
-                                                                  "assets/img/more_btn.png",
-                                                                  width: 15,
-                                                                  height: 15,
-                                                                  fit: BoxFit.contain,
-                                                                ),
-                                                              ),
-                                                            )
                                                           ],
                                                         ),
-                                                        const SizedBox(
-                                                          height: 15,
-                                                        ),
+
+                                                        const SizedBox(height: 15),
+
                                                         Text(
                                                           sObj["name"].toString(),
                                                           style: TextStyle(
@@ -327,34 +258,31 @@ class _WorkoutScheduleViewState extends State<WorkoutScheduleView> {
                                                               fontWeight:
                                                               FontWeight.w700),
                                                         ),
-                                                        const SizedBox(
-                                                          height: 4,
-                                                        ),
-                                                        Row(children: [
-                                                          Image.asset(
-                                                            "assets/img/time_workout.png",
-                                                            height: 20,
-                                                            width: 20,
+                                                        const SizedBox(height: 4,),
+                                                        Row(
+                                                            children: [
+                                                              Image.asset(
+                                                                "assets/img/time_workout.png",
+                                                                height: 20,
+                                                                width: 20,
                                                           ),
-                                                          const SizedBox(
-                                                            width: 8,
-                                                          ),
+                                                          const SizedBox(width: 8,),
                                                           Text(
-                                                            "${ getDayTitle(sObj["start_time"].toString()) }|${getStringDateToOtherFormate(sObj["start_time"].toString(), outFormatStr: "h:mm aa")}",
+                                                            "${getDayTitle(
+                                                                sObj["start_time"]
+                                                                    .toString())}|${getStringDateToOtherFormate(
+                                                                sObj["start_time"]
+                                                                    .toString(),
+                                                                outFormatStr: "h:mm aa")}",
                                                             style: TextStyle(
                                                                 color: TColor.gray,
                                                                 fontSize: 12),
                                                           )
                                                         ]),
-
-                                                        const SizedBox(
-                                                          height: 15,
-                                                        ),
-
+                                                        const SizedBox(height: 15,),
                                                         RoundButton(
                                                             title: "Mark Done",
                                                             onPressed: () {}),
-
                                                       ],
                                                     ),
                                                   ),
@@ -370,19 +298,19 @@ class _WorkoutScheduleViewState extends State<WorkoutScheduleView> {
                                             alignment: Alignment.centerLeft,
                                             decoration: BoxDecoration(
                                               gradient: LinearGradient(
-                                                  colors: TColor.secondaryG),
+                                                  colors: [
+                                                    TColor.secondaryColor1,
+                                                    TColor.secondaryColor2,
+                                                  ]),
                                               borderRadius:
                                               BorderRadius.circular(17.5),
                                             ),
                                             child: Text(
-                                              "${sObj["name"].toString()},"
-                                                  " ${getStringDateToOtherFormate(
-                                                  sObj["start_time"].toString(),
-                                                  outFormatStr: "h:mm aa")}",
-                                              maxLines: 1,
+                                              sObj["name"].toString(),
                                               style: TextStyle(
                                                 color: TColor.white,
                                                 fontSize: 12,
+                                                fontWeight: FontWeight.w700,
                                               ),
                                             ),
                                           ),
@@ -395,9 +323,9 @@ class _WorkoutScheduleViewState extends State<WorkoutScheduleView> {
                       );
                     },
                     separatorBuilder: (context, index) {
-                      return Divider(
-                        color: TColor.gray.withOpacity(0.2),
-                        height: 1,
+                      return Container(
+                        height: 0.5,
+                        color: TColor.gray,
                       );
                     },
                     itemCount: 24),
@@ -406,33 +334,59 @@ class _WorkoutScheduleViewState extends State<WorkoutScheduleView> {
           ),
         ],
       ),
-      floatingActionButton: InkWell(
-        onTap: () {
-          Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => AddScheduleView(
-                    date: _selectedDateAppBBar,
-                  )));
+
+      floatingActionButton: FloatingActionButton(
+        onPressed: () async {
+          final result = await Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    AddScheduleView(date: _selectedDate)),
+          );
+
+          // Handle the result and update the eventArr
+          if (result != null) {
+            setState(() {
+              DateTime date = dateToStartDate(result["date"]);
+              if(schedules.containsKey(date)){
+                schedules[date]!.add(result);
+              } else {
+                schedules[date] = [result];
+              }
+              setDayEventWorkoutList();
+              // eventArr.add(result);
+              // setDayEventWorkoutList();
+            });
+          }
         },
-        child: Container(
-          width: 55,
-          height: 55,
-          decoration: BoxDecoration(
-              gradient: LinearGradient(colors: TColor.secondaryG),
-              borderRadius: BorderRadius.circular(27.5),
-              boxShadow: const [
-                BoxShadow(
-                    color: Colors.black12, blurRadius: 5, offset: Offset(0, 2))
-              ]),
-          alignment: Alignment.center,
-          child: Icon(
-            Icons.add,
-            size: 20,
-            color: TColor.white,
-          ),
-        ),
+        backgroundColor: TColor.primaryColor1,
+        child: const Icon(Icons.add),
       ),
     );
   }
+
+
+  DateTime stringToDate(String dateStr, {String formatStr = "yyyy-MM-dd"}) {
+    return DateFormat(formatStr).parse(dateStr);
+  }
+
+  String getStringDateToOtherFormate(String dateStr,
+      {String outFormatStr = "yyyy-MM-dd"}) {
+    DateTime date = DateFormat("dd/MM/yyyy hh:mm aa").parse(dateStr);
+    return DateFormat(outFormatStr).format(date);
+  }
+
+  String getTime(int minutes) {
+    int hours = minutes ~/ 60;
+    int mins = minutes % 60;
+    return '${hours.toString().padLeft(2, '0')}:${mins.toString().padLeft(
+        2, '0')}';
+  }
+
+  String getDayTitle(String dateStr) {
+    DateTime date = DateFormat("dd/MM/yyyy hh:mm aa").parse(dateStr);
+    return DateFormat('EEEE').format(date);
+  }
 }
+
+

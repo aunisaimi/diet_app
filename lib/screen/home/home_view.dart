@@ -1,9 +1,10 @@
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:diet_app/Helpers/preferences_helper.dart';
 import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/common/common_widget/workout_row.dart';
 import 'package:diet_app/screen/bmi/bmiCalculator.dart';
-import 'package:diet_app/screen/meal_planner/dietandfitness/calorie_intake.dart';
 import 'package:diet_app/screen/on_boarding/started_view.dart';
 import 'package:dotted_dashed_line/dotted_dashed_line.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -49,13 +50,38 @@ class _HomeViewState extends State<HomeView> {
   double? bmiPercentage;
   String? bmiMessage;
   String bmiStatus = "";
-  int _remainingCalories = 0;
+  //double _sliderValue = 0.0;
+
+  int _remainingCalories = 2500;
   late ValueNotifier<double> _progressNotifier;
 
   bool logGoogle;
   _HomeViewState(this.logGoogle);
 
 
+  Map<String, Map<String, dynamic>> selectedMeals = {
+    "Breakfast": {},
+    "Lunch": {},
+    "Snack": {},
+    "Dinner": {},
+  };
+
+  int get _totalCalories {
+    int total = 0;
+    selectedMeals.forEach((key, meal) {
+      if (meal.isNotEmpty) {
+        total += meal["calories"] as int;
+      }
+    });
+    return total;
+  }
+
+  // Define a list of images or widgets for the carousel
+  final List<String> imgList =[
+    'assets/img/1.png',
+    'assets/img/2.png',
+    'assets/img/3.png',
+  ];
 
   @override
   void initState() {
@@ -66,8 +92,14 @@ class _HomeViewState extends State<HomeView> {
     fetchUserData();
     _remainingCalories = widget.remainingCalories;
     _progressNotifier = ValueNotifier(_calculateProgress(widget.remainingCalories));
-    //_getBMIMessage(bmi);
-    //fetchDataFromSharedPreferences();
+    _loadData();
+  }
+
+  Future<void> _loadData() async{
+    var meals = await PreferencesHelper.loadSelectedMeals();
+    setState(() {
+      selectedMeals = meals;
+    });
   }
 
   Future<void> fetchUserData() async {
@@ -91,8 +123,6 @@ class _HomeViewState extends State<HomeView> {
           bmi = userDoc['bmi'];
           bmiPercentage = calculateBMIPercentage(bmi!);
           bmiStatus = determineBMIStatus(bmi!);
-          // txtHeight.text = userDoc['height'];
-          // txtWeight.text = userDoc['weight'];
         });
         print("This is the current user email: ${userDoc['email']}");
         print("This is the current user name: ${userDoc['fname']}");
@@ -108,17 +138,9 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
-  @override
-  void didUpdateWidget(HomeView oldWidget){
-    super.didUpdateWidget(oldWidget);
-    if(oldWidget.remainingCalories != widget.remainingCalories){
-      _progressNotifier.value = _calculateProgress(widget.remainingCalories);
-    }
-  }
-
   double _calculateProgress(int remainingCalories){
     const int dailyCalorieGoal = 2500; // default daily goal is 2500kcal
-    return (remainingCalories / dailyCalorieGoal) * 100;
+    return (_remainingCalories / dailyCalorieGoal) * 100;
   }
 
 
@@ -157,10 +179,6 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
-  // sign out
-  // void signOut(){
-  //   FirebaseAuth.instance.signOut();
-  // }
 
   @override
   void dispose(){
@@ -267,6 +285,28 @@ class _HomeViewState extends State<HomeView> {
     {"title": "4pm - now", "subtitle": "900ml"},
   ];
 
+  List ads = [
+    {
+      "image": "assets/img/drink.png",
+      "subtitle":
+      "Drink a lot of water"
+    },
+    {
+      "image": "assets/img/do_yoga.png",
+      "subtitle":
+      "Remember to meditate "
+    },
+    {
+      "image": "assets/img/keep_walking.png",
+      "subtitle":
+      "Do exercises even at minimal"
+    },
+    {
+      "image": "assets/img/rest_well.png",
+      "subtitle":
+      "Exercise excessively is not good.\nTake a rest."
+    },
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -326,17 +366,6 @@ class _HomeViewState extends State<HomeView> {
                         ),
                       ],
                     ),
-                    // IconButton(
-                    //   onPressed: () {
-                    //     Navigator.push(
-                    //       context,
-                    //       MaterialPageRoute(
-                    //         builder: (context) => const NotificationView(),
-                    //       ),
-                    //     );
-                    //   },
-                    //   icon: Icon(Icons.notifications_active),
-                    // ),
                     IconButton(
                       onPressed: () {
                         logout(context);
@@ -345,9 +374,9 @@ class _HomeViewState extends State<HomeView> {
                     ),
                   ],
                 ),
-                SizedBox(
-                  height: media.width * 0.05,
-                ),
+                SizedBox(height: media.width * 0.05,),
+
+                //BMI display
                 Container(
                   height: media.width * 0.4,
                   decoration: BoxDecoration(
@@ -474,6 +503,53 @@ class _HomeViewState extends State<HomeView> {
                     ],
                   ),
                 ),
+
+                SizedBox(height: media.width * 0.05),
+
+                CarouselSlider(
+                    items: ads.map((item) => Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: TColor.secondaryG,
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight),
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      padding: EdgeInsets.symmetric(vertical: media.width * 0.05,horizontal: 10),
+                      alignment: Alignment.center,
+                      child: FittedBox(
+                        child: Column(
+                          children: [
+                            Image.asset(
+                              item['image'].toString(),
+                              width: media.width * 0.5,
+                              fit: BoxFit.fitWidth,
+                            ),
+
+                            SizedBox(height: media.width * 0.05),
+
+                            Text(
+                              item['subtitle'].toString(),
+                              style: TextStyle(
+                                  color: TColor.white,
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.w700),
+                            ),
+                          ],
+                        ),
+                      ),
+                    )).toList(),
+                    options: CarouselOptions(
+                      autoPlay: true,
+                      enlargeCenterPage: true,
+                      viewportFraction: 0.7,
+                      aspectRatio: 16/9,
+                      initialPage: 0,
+                      height: 200,
+                      autoPlayCurve: Curves.fastOutSlowIn,
+                      enableInfiniteScroll: true,
+                      autoPlayAnimationDuration: Duration(milliseconds: 800),
+                    )),
 
                 SizedBox(height: media.width * 0.05),
 
@@ -647,7 +723,9 @@ class _HomeViewState extends State<HomeView> {
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(25),
                             boxShadow: const [
-                              BoxShadow(color: Colors.black12, blurRadius: 2)
+                              BoxShadow(
+                                  color: Colors.black12,
+                                  blurRadius: 10)
                             ]),
                         child: Row(
                           children: [
@@ -699,9 +777,9 @@ class _HomeViewState extends State<HomeView> {
                                             fontSize: 14),
                                       ),
                                     ),
-                                    const SizedBox(
-                                      height: 10,
-                                    ),
+
+                                    const SizedBox(height: 10),
+
                                     Text(
                                       "Real time updates",
                                       style: TextStyle(
@@ -741,9 +819,9 @@ class _HomeViewState extends State<HomeView> {
                                                         axis: Axis.vertical)
                                                 ],
                                               ),
-                                              const SizedBox(
-                                                width: 10,
-                                              ),
+
+                                              const SizedBox(width: 10),
+
                                               Column(
                                                 mainAxisAlignment: MainAxisAlignment.start,
                                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -1172,14 +1250,6 @@ class _HomeViewState extends State<HomeView> {
                   fontWeight: FontWeight.w700,
                   color: Colors.white
                 ),
-                // badgeWidget: Text(
-                //   'hey',//bmi?.toStringAsFixed(1) ?? "0.0",
-                //   style: const TextStyle(
-                //       color: Colors.white,
-                //       fontSize: 12,
-                //       fontWeight: FontWeight.w700),
-                // ),
-
             );
           case 1:
             return PieChartSectionData(

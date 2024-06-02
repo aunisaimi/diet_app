@@ -2,15 +2,42 @@ import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/firebase_options.dart';
 import 'package:diet_app/screen/main_tab/main_tab_view.dart';
 import 'package:diet_app/screen/on_boarding/started_view.dart';
+import 'package:diet_app/screen/workout_tracker/workout_schedule_view.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+
+FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  tz.initializeTimeZones();
+
+  const AndroidInitializationSettings initializationSettingsAndroid =
+  AndroidInitializationSettings('logo');
+  final InitializationSettings initializationSettings =
+  const InitializationSettings(android: initializationSettingsAndroid);
+
+  await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+  const AndroidNotificationChannel channel = AndroidNotificationChannel(
+    'workout_channel', // id - this can be any unique string
+    'Workout Notifications',
+    importance: Importance.high,
+  );
+
+  await flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+      ?.createNotificationChannel(channel);
+
   runApp(const MyApp());
 }
 
@@ -22,10 +49,10 @@ class MyApp extends StatelessWidget {
     final email = prefs.getString('email');
     if(email != null) {
       // user has previously logged in, show the main screen
-      return MainTabView();
+      return const MainTabView();
     } else {
       // user not logged in
-      return StartedView();
+      return const StartedView();
     }
   }
 
@@ -35,7 +62,7 @@ class MyApp extends StatelessWidget {
       future: _getInitialScreen(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return MaterialApp(
+          return const MaterialApp(
             home: Scaffold(
               body: Center(child: CircularProgressIndicator()),
             ),
@@ -48,10 +75,44 @@ class MyApp extends StatelessWidget {
               primaryColor: TColor.primaryColor1,
               fontFamily: "Poppins",
             ),
-            home: snapshot.data,
+           home: snapshot.data,
+            //home: WorkoutScheduleView(),
           );
         }
       },
     );
   }
+}
+
+Future<void> scheduleNotification(String name, DateTime date) async {
+  AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
+  'workout_channel',
+  'Workout Notifications',
+  importance: Importance.max,
+  priority: Priority.high,
+  showWhen: false,
+  );
+
+  NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics);
+
+  // await flutterLocalNotificationsPlugin.schedule(
+  //   0,
+  //   'Workout Reminder',
+  //   '$name at ${DateFormat('h:mm aa').format(date)}',
+  //   date,
+  //   platformChannelSpecifics,
+  // );
+
+  await flutterLocalNotificationsPlugin.zonedSchedule(
+    0,
+    'Workout Reminder',
+    '$name at ${DateFormat('h:mm aa').format(date)}',
+    tz.TZDateTime.from(date, tz.local), // Convert to local time zone
+    platformChannelSpecifics,
+    androidAllowWhileIdle: true,
+    uiLocalNotificationDateInterpretation:
+    UILocalNotificationDateInterpretation.absoluteTime,
+    matchDateTimeComponents: DateTimeComponents.time,
+  );
 }
