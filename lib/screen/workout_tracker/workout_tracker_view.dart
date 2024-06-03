@@ -48,22 +48,20 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
   @override
   void initState() {
     super.initState();
-    //fetchExercises();
     fetchExercise();
-    //fetchTitle();
     fetchTitles();
   }
 
 
-
   Future<void> fetchExercise() async {
     try {
-      List<String> exerciseNames = ['jumping_jack', 'plank', 'pushup', 'situp', 'imaginary_chair', 'wall_pushup', 'bicycle_kick'];
+      List<String> exerciseNames = ['jumping_jack','bear_crawl','donkey_kick','explosive_jump','skipping','squat','plank', 'pushup', 'situp', 'imaginary_chair', 'wall_pushup', 'bicycle_kick'];
       List<String> exerciseDifficulty = ['advanced','beginner','intermediate'];
       List<Map<String,dynamic>> exercisesList =[];
 
+      //for(String difficulty in exerciseDifficulty)
       for (String exerciseName in exerciseNames){
-        print('Fetching exercises for path: exercises/beginner/$exerciseName');
+        print('Fetching exercises for path: exercises/$exerciseName');
         // QuerySnapshot<Map<String,dynamic>> querySnapshot = await FirebaseFirestore.instance
         //     .collection('exercises')
         //     .doc('beginner')
@@ -76,24 +74,6 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
             .collection(exerciseName)
             .doc(exerciseName)
             .get();
-
-        // if (querySnapshot.docs.isNotEmpty){
-        //   for(var doc in querySnapshot.docs){
-        //     Map<String,dynamic> data = doc.data();
-        //     data['name'] = exerciseName;
-        //     // check if the exercise with the same title already exists in the list
-        //     bool alreadyExists = exercisesList
-        //         .any((exercise) => exercise['title'] == data['title']);
-        //     if(!alreadyExists){
-        //       exercisesList.add(data);
-        //     }
-        //   }
-        //   // querySnapshot.docs.forEach((doc) {
-        //   //   Map<String,dynamic> data = doc.data();
-        //   //   data['name'] = exerciseName; // add exercise name to the data
-        //
-        //
-        // }
 
         if (snapshot.exists) {
           Map<String, dynamic>? data = snapshot.data();
@@ -130,7 +110,8 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
         for (var doc in snapshot.docs) {
           Map<String, dynamic>? data = doc.data();
           if (data != null) {
-            data['category'] = title; // Add the category title to the data
+            //data['category'] = title; // Add the category title to the data
+            data['title'] = title;
             titleList.add(data); // Add the title data to the list
           }
         }
@@ -178,42 +159,6 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
       ),
     );
   }
-
-
-  // Future<void> fetchTitle() async {
-  //   try {
-  //     // List<String> exerciseCategory = ['full body','arms','legs','abs']; //widget.document;
-  //     String exerciseCategory = widget.title; // e.g: beginner
-  //     String exerciseName = widget.document; // e.g: jumping_jack
-  //
-  //     print("Fetching titles for category: $exerciseCategory , "
-  //         "and exercise Named : $exerciseName");
-  //
-  //     DocumentSnapshot<Map<String,dynamic>> querySnapshot = await _firestore
-  //         .collection('exercises')
-  //         .doc(exerciseCategory)
-  //         .collection(exerciseName)
-  //         .doc(exerciseName)
-  //         .get();
-  //
-  //     if (querySnapshot.exists){
-  //       print('Title found for exercise name: $exerciseName');
-  //       Map<String,dynamic> data = querySnapshot.data() ?? {};
-  //
-  //       String title = data['title'] ?? "No title found";
-  //       print("Title: $title");
-  //
-  //       //data = querySnapshot.data() ?? {};
-  //       //print("Data: $data");
-  //     } else {
-  //       print('No document found for exercise name: $exerciseName');
-  //     }
-  //
-  //   } catch (e, stackTrace) {
-  //     print("Error fetching title : $e");
-  //     print(stackTrace);
-  //   }
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -392,38 +337,38 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
                     ],
                   ),
 
-                ListView.builder(
-                  padding: EdgeInsets.zero,
-                  physics: const NeverScrollableScrollPhysics(),
-                  shrinkWrap: true,
-                  // get the unique titles from whatArr list
-                  itemCount: whatArr.map((exercise) => exercise['title'])
-                      .toSet()
-                      .length,
-                  itemBuilder: (context, index) {
-                    // Get the unique titles from the whatArr list
-                    final uniqueTitles = whatArr
-                        .map((exercise) => exercise['title'])
+                  ListView.builder(
+                    padding: EdgeInsets.zero,
+                    physics: const NeverScrollableScrollPhysics(),
+                    shrinkWrap: true,
+                    // get the unique titles from whatArr list
+                    itemCount: whatArr.map((exercise) => exercise['title'])
                         .toSet()
-                        .toList();
+                        .length,
+                    itemBuilder: (context, index) {
+                      // Get the unique titles from the whatArr list
+                      final uniqueTitles = whatArr
+                          .map((exercise) => exercise['title'])
+                          .toSet()
+                          .toList();
 
-                    // Find the first exercise that matches the current unique title
-                    final exercise = whatArr
-                        .firstWhere((exercise) =>
-                    exercise['title'] == uniqueTitles[index]);
+                      // Find the first exercise that matches the current unique title
+                      final exercise = whatArr
+                          .firstWhere((exercise) =>
+                      exercise['title'] == uniqueTitles[index]);
 
-                    return WhatTrainRow(
-                      wObj: exercise,
-                      onViewMorePressed: () {
-                        _onViewMorePressed(
-                            context,
-                            exercise['title']);
-                      },
-                    );
-                  },
-                ),
+                      return WhatTrainRow(
+                        wObj: exercise,
+                        onViewMorePressed: () {
+                          _onViewMorePressed(
+                              context,
+                              exercise['title']);
+                        },
+                      );
+                    },
+                  ),
 
-                SizedBox(height: media.width * 0.1),
+                  SizedBox(height: media.width * 0.1),
                 ],
               ),
             ),
