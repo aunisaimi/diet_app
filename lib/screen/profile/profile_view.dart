@@ -3,6 +3,7 @@ import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/common/common_widget/title_subtitle_cell.dart';
 import 'package:diet_app/database/auth_service.dart';
+import 'package:diet_app/screen/Theme/Apparance.dart';
 import 'package:diet_app/screen/profile/edit_profile.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -91,7 +92,13 @@ class _ProfileViewState extends State<ProfileView> {
         ),
         actions: [
           InkWell(
-            onTap: () {},
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ThemePage())
+              );
+            },
             child: Container(
               margin: const EdgeInsets.all(8),
               height: 40,

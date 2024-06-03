@@ -1,5 +1,6 @@
 import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/firebase_options.dart';
+import 'package:diet_app/screen/Theme/theme_provider.dart';
 import 'package:diet_app/screen/main_tab/main_tab_view.dart';
 import 'package:diet_app/screen/on_boarding/started_view.dart';
 import 'package:diet_app/screen/workout_tracker/workout_schedule_view.dart';
@@ -7,6 +8,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
@@ -38,7 +40,12 @@ void main() async {
       .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
       ?.createNotificationChannel(channel);
 
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => ThemeProvider(),
+      child: MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -47,7 +54,7 @@ class MyApp extends StatelessWidget {
   Future<Widget> _getInitialScreen() async {
     final prefs = await SharedPreferences.getInstance();
     final email = prefs.getString('email');
-    if(email != null) {
+    if (email != null) {
       // user has previously logged in, show the main screen
       return const MainTabView();
     } else {
@@ -58,6 +65,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     return FutureBuilder<Widget>(
       future: _getInitialScreen(),
       builder: (context, snapshot) {
@@ -71,11 +79,18 @@ class MyApp extends StatelessWidget {
           return MaterialApp(
             title: 'Fitness with Me',
             debugShowCheckedModeBanner: false,
+            themeMode: themeProvider.themeMode,
             theme: ThemeData(
               primaryColor: TColor.primaryColor1,
               fontFamily: "Poppins",
+              brightness: Brightness.light,
             ),
-           home: snapshot.data,
+            darkTheme: ThemeData(
+              primaryColor: TColor.primaryColor1,
+              fontFamily: "Poppins",
+              brightness: Brightness.dark,
+            ),
+            home: snapshot.data,
             //home: WorkoutScheduleView(),
           );
         }
@@ -86,23 +101,15 @@ class MyApp extends StatelessWidget {
 
 Future<void> scheduleNotification(String name, DateTime date) async {
   AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
-  'workout_channel',
-  'Workout Notifications',
-  importance: Importance.max,
-  priority: Priority.high,
-  showWhen: false,
+    'workout_channel',
+    'Workout Notifications',
+    importance: Importance.max,
+    priority: Priority.high,
+    showWhen: false,
   );
 
   NotificationDetails platformChannelSpecifics = NotificationDetails(
       android: androidPlatformChannelSpecifics);
-
-  // await flutterLocalNotificationsPlugin.schedule(
-  //   0,
-  //   'Workout Reminder',
-  //   '$name at ${DateFormat('h:mm aa').format(date)}',
-  //   date,
-  //   platformChannelSpecifics,
-  // );
 
   await flutterLocalNotificationsPlugin.zonedSchedule(
     0,
@@ -111,8 +118,7 @@ Future<void> scheduleNotification(String name, DateTime date) async {
     tz.TZDateTime.from(date, tz.local), // Convert to local time zone
     platformChannelSpecifics,
     androidAllowWhileIdle: true,
-    uiLocalNotificationDateInterpretation:
-    UILocalNotificationDateInterpretation.absoluteTime,
+    uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
     matchDateTimeComponents: DateTimeComponents.time,
   );
 }
