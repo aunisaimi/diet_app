@@ -73,8 +73,46 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
       _difficulty = "Beginner";
     });
     _fetchAndGroupExercisesByTitle();
-    //_groupExercisesByTitle();
-    //fetchTitle();
+    _fetchAndGroupExercisesByDifficulty();
+  }
+
+  Future<void> _fetchAndGroupExercisesByDifficulty() async {
+    try {
+      QuerySnapshot snapshot = await _firestore
+          .collection('exercises')
+          .doc(_difficulty.toLowerCase())
+          .collection(widget.category.toLowerCase())
+          .get();
+
+      Map<String, List<Map<String, dynamic>>> groupedExercises = {};
+
+      for (var doc in snapshot.docs) {
+        var exercise = doc.data() as Map<String, dynamic>;
+        String title = exercise['title'] ?? 'Unknown';
+
+        if (groupedExercises.containsKey(title)) {
+          groupedExercises[title]!.add(exercise);
+        } else {
+          groupedExercises[title] = [exercise];
+        }
+      }
+
+      setState(() {
+        _groupedExercises = groupedExercises;
+      });
+
+      print('Grouped exercises: $_groupedExercises');
+    } catch (e, stackTrace) {
+      print("Error fetching exercises: $e");
+      print(stackTrace);
+    }
+  }
+
+  void _onDifficultySelected(String difficulty) {
+    setState(() {
+      _difficulty = difficulty;
+      _fetchAndGroupExercisesByDifficulty();
+    });
   }
 
   Future<void> _fetchAndGroupExercisesByTitle() async {
@@ -225,7 +263,7 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                                 Text(
                                   //" ${widget.exercises.first["duration"].toString()} ",
                                   //"${_difficulty}",
-                                  "Add duration here later",
+                                  _difficulty,
                                   style: TextStyle(
                                     color: TColor.gray,
                                     fontSize: 14,
@@ -260,9 +298,10 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                                       title: const Text("Beginner"),
                                       onTap: () {
                                         setState(() {
-                                          _difficulty = "Beginner";
-                                          print("Selection: $_difficulty");
+                                          // _difficulty = "Beginner";
+                                          // print("Selection: $_difficulty");
                                           Navigator.pop(context);
+                                          _onDifficultySelected("Beginner");
                                         });
                                       },
                                     ),
@@ -270,9 +309,10 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                                       title: const Text("Intermediate"),
                                       onTap: () {
                                         setState(() {
-                                          _difficulty = "Intermediate";
-                                          print("Selection: $_difficulty");
+                                          // _difficulty = "Intermediate";
+                                          // print("Selection: $_difficulty");
                                           Navigator.pop(context);
+                                          _onDifficultySelected("Intermediate");
                                         });
                                       },
                                     ),
@@ -280,9 +320,10 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                                       title: const Text("Advanced"),
                                       onTap: () {
                                         setState(() {
-                                          _difficulty = "Advanced";
-                                          print("Selection: $_difficulty");
+                                          // _difficulty = "Advanced";
+                                          // print("Selection: $_difficulty");
                                           Navigator.pop(context);
+                                          _onDifficultySelected("Advanced");
                                         });
                                       },
                                     ),
@@ -293,7 +334,7 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                           );
                         },
                       ),
-                      SizedBox(height: media.width * 0.05),
+                      //SizedBox(height: media.width * 0.05),
                       SizedBox(height: media.width * 0.05),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -326,7 +367,8 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                         itemCount: _groupedExercises.keys.length,
                         itemBuilder: (context, index) {
                           String title = _groupedExercises.keys.elementAt(index);
-                          List<Map<String, dynamic>> exercises = _groupedExercises[title]!;
+                          List<Map<String, dynamic>> exercises =
+                              _groupedExercises[title]!;
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -340,7 +382,8 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                                   print('Length of exercises: ${exercises.length}');
 
                                   // Check if exerciseIndex is valid
-                                  if (exerciseIndex >= 0 && exerciseIndex < exercises.length){
+                                  if (exerciseIndex >= 0 &&
+                                      exerciseIndex < exercises.length){
                                     // to access sObj
                                     Map<String,dynamic> sObj =  Map<String, dynamic>
                                         .from(exercises[exerciseIndex]);
