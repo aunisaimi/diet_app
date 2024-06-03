@@ -19,14 +19,12 @@ class ExercisesStepDetails extends StatefulWidget {
   //final Map eObj; // exercise obj contains details about exercise
   final String image;
   final String? duration;
-  //final String? type;
   String value;
   final String document;
   final String difficulty;
   final String exerciseName;
   final String? description;
   final String steps;
-
   String? type;
 
    ExercisesStepDetails({
@@ -56,73 +54,16 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
 
   List<StepModel> stepArr = []; // list to store steps of exercises
 
-  // Future<void> fetchSteps() async {
-  //   try {
-  //     String exerciseName = widget.document;
-  //     print('Fetching steps for exercise: $exerciseName');
-  //
-  //     DocumentSnapshot<Map<String, dynamic>> querySnapshot = await _firestore
-  //         .collection('exercises')
-  //         .doc('beginner') // Assuming 'beginner' is the level, replace it if needed
-  //         .collection(exerciseName) // Accessing 'jumping_jack', 'plank', or 'push_up'
-  //         .doc(exerciseName) // Accessing the specific exercise document
-  //         .collection('steps') // Accessing the 'steps' subcollection
-  //         .doc('steps') // Specific document within 'steps' collection
-  //         .get();
-  //
-  //     if (querySnapshot.exists) {
-  //       print('Steps found for exercise: $exerciseName');
-  //       Map<String, dynamic> data = {};
-  //
-  //       /*for (var doc in querySnapshot) {
-  //         data.addAll(doc.data());
-  //       }*/
-  //       data = querySnapshot.data() ?? {};
-  //
-  //       print("Data: $data");
-  //
-  //       List<String> orderedKeys = ['first', 'second', 'third', 'fourth', 'fifth', 'sixth'];
-  //
-  //       // Sort the keys in the correct order
-  //       List<String> sortedKeys = data.keys.toList();
-  //       sortedKeys.sort((a, b) {
-  //         return orderedKeys.indexOf(a).compareTo(orderedKeys.indexOf(b));
-  //       });
-  //
-  //       // Create the steps list in the correct order
-  //       List<StepModel> stepsList = sortedKeys.map((key) {
-  //         String stepNumber = key;
-  //         String stepDescription = data[key] as String;
-  //
-  //         // Create a map to match the expected structure for StepModel.fromMap
-  //         Map<String, dynamic> stepData = {
-  //           'steps': stepNumber,
-  //           'description': stepDescription,
-  //         };
-  //
-  //         return StepModel.fromMap(stepData);
-  //       }).toList();
-  //
-  //       setState(() {
-  //         stepArr = stepsList;
-  //       });
-  //     } else {
-  //       print('No steps found for the exercise: $exerciseName');
-  //     }
-  //   } catch (e, printStack) {
-  //     print('Error fetching steps: $e');
-  //     print(printStack);
-  //   }
-  // }
 
   Future<void> fetchSteps() async {
     try {
       String exerciseName = widget.document;
-      print('Fetching steps for exercise: $exerciseName');
+      String difficulty = widget.difficulty.toLowerCase();
+      print('Fetching steps for exercise: $exerciseName, Difficulty: $difficulty');
 
       DocumentSnapshot<Map<String,dynamic>> exerciseDoc = await _firestore
           .collection('exercises')
-          .doc('beginner')
+          .doc(difficulty) //beginner
           .collection(exerciseName)
           .doc(exerciseName)
           .get();
