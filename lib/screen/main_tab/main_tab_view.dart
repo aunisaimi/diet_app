@@ -8,7 +8,8 @@ import '../home/home_view.dart';
 import '../profile/profile_view.dart';
 
 class MainTabView extends StatefulWidget {
-  const MainTabView({Key? key}) : super(key: key);
+  final int? remainingCalories;
+  const MainTabView({Key? key, this.remainingCalories}) : super(key: key);
 
   @override
   State<MainTabView> createState() => _MainTabViewState();
@@ -20,7 +21,7 @@ class _MainTabViewState extends State<MainTabView> {
 
   @override
   void initState() {
-    _currentTab = HomeView(remainingCalories: 2500,);
+    _currentTab = HomeView(remainingCalories: widget.remainingCalories ?? 0);
     super.initState();
   }
 

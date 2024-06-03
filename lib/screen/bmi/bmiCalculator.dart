@@ -192,7 +192,7 @@ class _BMICalculatorState extends State<BMICalculator> {
                 leading: InkWell(
                   onTap: () {
                     Navigator.pop(context, {
-                      'bmi': bmi,
+                      'bmi': bmi!,
                       'bmiMessage': _getBMIMessage(bmi!),
                     });
                   },
@@ -267,7 +267,7 @@ class _BMICalculatorState extends State<BMICalculator> {
                   if (bmi != null)
                     Text(
                       'Your BMI: ${bmi!.toStringAsFixed(2)}',
-                      style: TextStyle(
+                      style: const TextStyle(
                           color: Colors.indigo,
                           fontSize: 18,
                           fontWeight: FontWeight.w600),

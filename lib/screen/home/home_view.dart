@@ -50,6 +50,8 @@ class _HomeViewState extends State<HomeView> {
   double? bmiPercentage;
   String? bmiMessage;
   String bmiStatus = "";
+  int _selectTab = 0;
+  late Widget _currentTab;
   //double _sliderValue = 0.0;
 
   int _remainingCalories = 2500;
@@ -960,7 +962,7 @@ class _HomeViewState extends State<HomeView> {
                                         "$_remainingCalories kCal",
                                         //"760 kCal",
                                         style: TextStyle(
-                                            color: TColor.white.withOpacity(0.7),
+                                            color: TColor.white, //.withOpacity(0.7),
                                             fontWeight: FontWeight.w700,
                                             fontSize: 14),
                                       ),
@@ -998,7 +1000,8 @@ class _HomeViewState extends State<HomeView> {
                                             SimpleCircularProgressBar(
                                               progressStrokeWidth: 10,
                                               backStrokeWidth: 10,
-                                              progressColors: [TColor.primaryColor1, TColor.primaryColor2],
+                                              progressColors: [
+                                                TColor.secondaryColor2, TColor.secondaryColor1],
                                               backColor: Colors.grey.shade100,
                                               valueNotifier: _progressNotifier,
                                               startAngle: -180,
@@ -1014,9 +1017,9 @@ class _HomeViewState extends State<HomeView> {
                     )
                   ],
                 ),
-                SizedBox(
-                  height: media.width * 0.1,
-                ),
+
+                SizedBox(height: media.width * 0.1,),
+
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -1058,9 +1061,7 @@ class _HomeViewState extends State<HomeView> {
                         )),
                   ],
                 ),
-                SizedBox(
-                  height: media.width * 0.05,
-                ),
+                SizedBox(height: media.width * 0.05,),
                 Container(
                     padding: const EdgeInsets.only(left: 15),
                     height: media.width * 0.5,

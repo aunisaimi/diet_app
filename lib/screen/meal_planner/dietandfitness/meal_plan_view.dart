@@ -1,13 +1,19 @@
 import 'package:diet_app/Helpers/preferences_helper.dart';
 import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
+import 'package:diet_app/screen/home/home_view.dart';
+import 'package:diet_app/screen/main_tab/main_tab_view.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 class MealPlanView extends StatefulWidget {
   final int remainingCalories;
-  const MealPlanView({super.key, required this.remainingCalories});
+  final ValueChanged<int> onCaloriesUpdated;
+  const MealPlanView({
+    super.key,
+    required this.remainingCalories,
+    required this.onCaloriesUpdated});
 
   @override
   State<MealPlanView> createState() => _MealPlanViewState();
@@ -421,6 +427,24 @@ class _MealPlanViewState extends State<MealPlanView> {
               },
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: RoundButton(
+              title: "Go to home",
+              type: RoundButtonType.bgSGradient,
+              onPressed: (){
+                // widget.onCaloriesUpdated(remainingCalories);
+                // Navigator.pop(context);
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context)=> MainTabView(
+                            remainingCalories: remainingCalories)
+                    )
+                );
+              },
+            ),
+          )
         ],
       ),
     );
