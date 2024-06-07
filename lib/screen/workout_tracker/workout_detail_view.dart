@@ -3,6 +3,7 @@ import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/common/common_widget/exercise_set_section.dart';
 import 'package:diet_app/screen/workout_tracker/add_exercise.dart';
 import 'package:diet_app/screen/workout_tracker/exercise_step_detail.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import '../../common/common_widget/icon_title_next_row.dart';
@@ -27,7 +28,11 @@ class WorkoutDetailView extends StatefulWidget {
 
 class _WorkoutDetailViewState extends State<WorkoutDetailView> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth= FirebaseAuth.instance;
+
   String _difficulty = "Beginner"; // Default difficulty level
+  Set<String> _favourites = {};
+
   List youArr = [
     {
       "image": "assets/img/fitness.png",
@@ -145,6 +150,36 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
     }
   }
 
+  Future<void> _addToHistory(Map<String,dynamic> exercise) async {
+    try{
+      final User? user = _auth.currentUser;
+      if( user != null){
+        await _firestore.collection('history').add({
+          'userId': user.uid,
+          'exercise': exercise,
+          'status': 'no',
+          'timestamp': FieldValue.serverTimestamp(),
+        });
+        print("Exercise added to the history: $exercise");
+      } else {
+        print("No user signed in");
+      }
+    } catch(e,printStack){
+      print("Error adding to firestore history: $e");
+      print(printStack);
+    }
+  }
+
+  void _toggleFavorite(String exerciseTitle){
+    setState(() {
+      if(_favourites.contains(exerciseTitle)){
+        _favourites.remove(exerciseTitle);
+      } else {
+        _favourites.add(exerciseTitle);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     var media = MediaQuery.of(context).size;
@@ -176,30 +211,6 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                     child: const Icon(Icons.arrow_back_ios_new_rounded),
                   ),
                 ),
-                actions: [
-                  InkWell(
-                    onTap: () {
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context)
-                              => const AddExercise()
-                          )
-                      );
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.all(8),
-                      height: 40,
-                      width: 40,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: TColor.lightGray,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(Icons.more_horiz_outlined),
-                    ),
-                  )
-                ],
               ),
               SliverAppBar(
                 backgroundColor: Colors.transparent,
@@ -261,8 +272,6 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                                   ),
                                 ),
                                 Text(
-                                  //" ${widget.exercises.first["duration"].toString()} ",
-                                  //"${_difficulty}",
                                   _difficulty,
                                   style: TextStyle(
                                     color: TColor.gray,
@@ -273,12 +282,28 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                             ),
                           ),
                           IconButton(
-                            onPressed: () {},
-                            icon: const Icon(Icons.favorite),
+                            icon: Icon(
+                                _favourites.contains(widget.exercises.first["title"])
+                                    ? Icons.favorite
+                                    : Icons.favorite_border_rounded,
+                                color: _favourites.contains(widget.exercises.first["title"])
+                                    ? TColor.secondaryColor1
+                                    : TColor.gray
+                            ),
+                            onPressed: () {
+                              _toggleFavorite(widget.exercises.first["title"]);
+                            },
+
                           ),
                         ],
                       ),
                       SizedBox(height: media.width * 0.05),
+                      //
+                      // Container(
+                      //   height: 50,
+                      //   padding: const EdgeInsets.all(6),
+                      //   decoration: ,
+                      // )
                       IconTitleNextRow(
                         icon: "assets/img/difficulty.png",
                         title: "Difficulty",
@@ -298,8 +323,6 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                                       title: const Text("Beginner"),
                                       onTap: () {
                                         setState(() {
-                                          // _difficulty = "Beginner";
-                                          // print("Selection: $_difficulty");
                                           Navigator.pop(context);
                                           _onDifficultySelected("Beginner");
                                         });
@@ -309,8 +332,6 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                                       title: const Text("Intermediate"),
                                       onTap: () {
                                         setState(() {
-                                          // _difficulty = "Intermediate";
-                                          // print("Selection: $_difficulty");
                                           Navigator.pop(context);
                                           _onDifficultySelected("Intermediate");
                                         });
@@ -320,8 +341,6 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                                       title: const Text("Advanced"),
                                       onTap: () {
                                         setState(() {
-                                          // _difficulty = "Advanced";
-                                          // print("Selection: $_difficulty");
                                           Navigator.pop(context);
                                           _onDifficultySelected("Advanced");
                                         });
@@ -368,7 +387,7 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                         itemBuilder: (context, index) {
                           String title = _groupedExercises.keys.elementAt(index);
                           List<Map<String, dynamic>> exercises =
-                              _groupedExercises[title]!;
+                          _groupedExercises[title]!;
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [

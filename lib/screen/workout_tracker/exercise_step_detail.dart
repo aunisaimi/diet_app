@@ -26,6 +26,7 @@ class ExercisesStepDetails extends StatefulWidget {
   final String? description;
   final String steps;
   String? type;
+  //Function(Map<String,dynamic>) createHistoryEntry;
 
    ExercisesStepDetails({
     Key? key,
@@ -38,7 +39,8 @@ class ExercisesStepDetails extends StatefulWidget {
     required this.exerciseName,
     this.description,
     required this.steps,
-    this.type
+    this.type,
+    // required this.createHistoryEntry
   }) : super(key: key);
 
   @override
@@ -129,7 +131,23 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
     }
   }
 
+  Future<String> _addToHistory({required String userId,required Map exercise, required String status}) async {
+    try {
+      DocumentReference historyRef = await _firestore.collection('history').add({
+        'userId': userId,
+        'exercise': exercise,
+        'status': status,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
 
+      print("Exercise added to the history: ${exercise['name']}");
+      return historyRef.id; // return history doc ID
+    } catch (e,stackTrace){
+      print("Error adding to firestore history: $e");
+      print(stackTrace);
+      return '';
+    }
+  }
 
   @override
   void initState() {
@@ -339,28 +357,43 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
               RoundButton(
                 title: "Start",
                 elevation: 1,
-                onPressed: () {
-                 if (widget.type == 'duration' && widget.value != null) {
-                   Navigator.push(
-                       context,
-                       MaterialPageRoute(
-                           builder: (context) => CountdownScreen(
-                               duration: widget.value!)
-                       )
-                   );
-                 } else if (widget.type == 'frequency'){
-                   Navigator.push(
-                       context,
-                       MaterialPageRoute(
-                           builder: (context) =>
-                               StopwatchScreen(
-                                   exerciseName: widget.exerciseName)
-                       )
-                   );
-                 }
-                 else {
-                   print('Invalid exercise type');
-                 }
+                onPressed: () async {
+                  final User? user = _auth.currentUser;
+                  if(user != null){
+                    String historyId = await _addToHistory(
+                      userId: user.uid,
+                      exercise: widget.eObj,
+                      status: "pending",
+                    );
+                    if (widget.type == 'duration' && widget.value != null) {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => CountdownScreen(
+                                duration: widget.value!,
+                                historyId: historyId,
+                              )
+                          )
+                      );
+                    }
+                    else if (widget.type == 'frequency'){
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  StopwatchScreen(
+                                      exerciseName: widget.exerciseName,
+                                      historyId: historyId)
+                          )
+                      );
+                    }
+                    else {
+                      print('Invalid exercise type');
+                    }
+                  }
+                  else {
+                    print("No User signed in");
+                  }
                 },
               ),
               const SizedBox(height: 15),

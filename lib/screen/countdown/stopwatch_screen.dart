@@ -1,14 +1,17 @@
 import 'dart:async';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diet_app/common/color_extension.dart';
 import 'package:flutter/material.dart';
 
 class StopwatchScreen extends StatefulWidget {
   final String exerciseName;
+  final String historyId;
 
   const StopwatchScreen({
     Key? key,
-    required this.exerciseName
+    required this.exerciseName,
+    required this.historyId,
   }) : super(key: key);
 
   @override
@@ -16,25 +19,37 @@ class StopwatchScreen extends StatefulWidget {
 }
 
 class _StopwatchScreenState extends State<StopwatchScreen> {
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   late Stopwatch _stopwatch;
   late Timer _timer;
 
   @override
-  void initState(){
+  void initState() {
     super.initState();
     _stopwatch = Stopwatch();
+    _markAsPending();
+  }
+
+  void _markAsCompleted() {
+    _firestore.collection('history').doc(widget.historyId).update({
+      'status': 'completed',
+    });
+  }
+
+  void _markAsPending() {
+    _firestore.collection('history').doc(widget.historyId).update({
+      'status': 'pending',
+    });
   }
 
   void _startStopwatch() {
     _stopwatch.start();
-    _timer = Timer.periodic(Duration(seconds: 1), (timer) {
-      setState(() {
-
-      });
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {});
     });
   }
 
-  void _stopStopwatch(){
+  void _stopStopwatch() {
     _stopwatch.stop();
     _timer.cancel();
   }
@@ -45,15 +60,15 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
   }
 
   @override
-  void dispose(){
+  void dispose() {
     _timer.cancel();
     super.dispose();
   }
 
-  String _formattedTime(){
+  String _formattedTime() {
     final duration = _stopwatch.elapsed;
     return '${duration.inMinutes.toString().padLeft(2, '0')}'
-        ':${(duration.inSeconds % 60).toString().padLeft(2,'0')}';
+        ':${(duration.inSeconds % 60).toString().padLeft(2, '0')}';
   }
 
   @override
@@ -65,6 +80,7 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
         elevation: 0,
         leading: InkWell(
           onTap: () {
+            _markAsPending();
             Navigator.pop(context);
           },
           child: Container(
@@ -85,7 +101,7 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
         children: [
           Text(
             _formattedTime(),
-            style: TextStyle(fontSize: 48),
+            style: const TextStyle(fontSize: 48),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -95,16 +111,25 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
                     ? _stopStopwatch
                     : _startStopwatch,
                 child: Text(
-                    _stopwatch.isRunning
-                        ? 'Stop'
-                        : 'Start'
+                  _stopwatch.isRunning
+                      ? 'Stop'
+                      : 'Start',
                 ),
               ),
+              const SizedBox(width: 10),
               ElevatedButton(
                 onPressed: _resetStopwatch,
-                child: Text('Reset'),
+                child: const Text('Reset'),
               ),
             ],
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () {
+              _markAsCompleted();
+              Navigator.pop(context); // Optionally navigate back
+            },
+            child: const Text('Finish Workout'),
           ),
         ],
       ),

@@ -8,14 +8,23 @@ class WhatTrainRow extends StatelessWidget {
   //final Map wObj;
   final Map<String,dynamic> wObj;
   final VoidCallback onViewMorePressed;
+  final int totalTime; // in seconds
 
   const WhatTrainRow({
     Key? key,
     required this.wObj,
-    required this.onViewMorePressed}) : super(key: key);
+    required this.onViewMorePressed,
+    required this.totalTime}) : super(key: key);
+
+  String formatTime(int seconds){
+    int minutes = seconds ~/60;
+    int remainingSeconds = seconds % 60;
+    return '${minutes}m ${remainingSeconds}s';
+  }
 
   @override
   Widget build(BuildContext context) {
+    int time =wObj["time"] ?? 0;
     return Container(
         margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
         decoration: BoxDecoration(
@@ -47,14 +56,14 @@ class WhatTrainRow extends StatelessWidget {
                     ),
 
                     const SizedBox(height: 4,),
-                    // Text(
-                    //   "${wObj["exercises"]?.toString()?? "N/A"} "
-                    //       " | ${ wObj["duration"]?.toString()?? "N/A" }" ,
-                    //   style: TextStyle(
-                    //     color: TColor.gray,
-                    //     fontSize: 12,
-                    //   ),
-                    // ),
+                    Text(
+                      'Total Time: ${formatTime(time)}',
+                      style: TextStyle(
+                        color: TColor.black,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500
+                      ),
+                    ),
 
                     const SizedBox(height: 15),
 

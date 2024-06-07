@@ -3,6 +3,8 @@ import 'package:diet_app/common/common_widget/upcoming_workout_row.dart';
 import 'package:diet_app/common/common_widget/what_train_row.dart';
 import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
+import 'package:diet_app/screen/countdown/countdown_screen.dart';
+import 'package:diet_app/screen/countdown/stopwatch_screen.dart';
 import 'package:diet_app/screen/home/activity_tracker_view.dart';
 import 'package:diet_app/screen/workout_tracker/workout_detail_view.dart';
 import 'package:diet_app/screen/workout_tracker/workout_schedule_view.dart';
@@ -11,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../../database/auth_service.dart';
+import 'exercise_step_detail.dart';
 
 class WorkoutTrackerView extends StatefulWidget {
   final String document;
@@ -28,6 +31,7 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   AuthService authService = AuthService();
+  List<Map<String,dynamic>> pendingWorkouts =[];
 
   final List<Map<String, dynamic>> latestArr = [
     {
@@ -44,20 +48,23 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
 
 
   List<Map<String,dynamic>> whatArr =[];
+  Map<String,int> totalTimes = {};
 
   @override
   void initState() {
     super.initState();
     fetchExercise();
     fetchTitles();
+    fetchUserPendingWorkouts();
+    print("History found: ${fetchPendingWorkouts('')}");
   }
-
 
   Future<void> fetchExercise() async {
     try {
       List<String> exerciseNames = ['jumping_jack','bear_crawl','donkey_kick','explosive_jump','skipping','squat','plank', 'pushup', 'situp', 'imaginary_chair', 'wall_pushup', 'bicycle_kick'];
       List<String> exerciseDifficulty = ['advanced','beginner','intermediate'];
       List<Map<String,dynamic>> exercisesList =[];
+      Map<String,int> totalTimePerCategory = {};
 
       //for(String difficulty in exerciseDifficulty)
       for (String exerciseName in exerciseNames){
@@ -80,12 +87,24 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
           if (data != null) {
             data['name'] = exerciseName; // Add the exercise name to the data
             exercisesList.add(data); // Add the exercise data to the list
+
+            // update total time for the category
+            String category = data['title'];
+            num? timeEstimation = data['time']; // in seconds
+            if (timeEstimation != null) {
+              if (totalTimes.containsKey(category)){
+                totalTimes[category] = totalTimes[category]! + timeEstimation.toInt();
+              } else {
+                totalTimes[category] = timeEstimation.toInt();
+              }
+            }
           }
         }
       }
       setState(() {
         //whatArr = exercisesList;
         whatArr.addAll(exercisesList);
+        // totalTimes = totalTimePerCategory;
       });
     } catch (e){
       print('Error fetching exercises: $e');
@@ -112,7 +131,14 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
           if (data != null) {
             //data['category'] = title; // Add the category title to the data
             data['title'] = title;
-            titleList.add(data); // Add the title data to the list
+            titleList.add(data);// Add the title data to the list
+
+            int timeEstimation = int.parse(data['time'].toString()) ?? 0;
+            if(totalTimes.containsKey(title)){
+              totalTimes[title] = totalTimes[title]! + timeEstimation;
+            } else {
+              totalTimes[title] = timeEstimation;
+            }
           }
         }
       }
@@ -148,9 +174,87 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
   }
 
 
+  Stream<List<Map<String, dynamic>>> fetchPendingWorkouts(String userId) {
+    return _firestore
+        .collection('history')
+        .where('userId', isEqualTo: userId)
+        .where('status', isEqualTo: 'pending')
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map(
+            (doc) => doc.data() as Map<String, dynamic>).toList());
+  }
+
+  // Stream<List<Map<String, dynamic>>> fetchPendingWorkouts(String userId) {
+  //   return _firestore
+  //       .collection('history')
+  //       .where('userId', isEqualTo: userId)
+  //       .where('status', isEqualTo: 'pending')
+  //       .snapshots()
+  //       .map((snapshot) {
+  //     return snapshot.docs.map((doc) => {
+  //       'id': doc.id,
+  //       ...doc.data(),
+  //     }).toList();
+  //   });
+  // }
+
+
+  Future<void> fetchUserPendingWorkouts() async {
+    final User? user = _auth.currentUser;
+    if(user != null) {
+      List<Map<String,dynamic>> workouts = (await fetchPendingWorkouts(user.uid)) as List<Map<String, dynamic>>;
+      setState(() {
+        pendingWorkouts = workouts;
+      });
+    }
+  }
+
+  void resumeWorkout(Map<String,dynamic> workout){
+    if(workout['exercise']['type'] == 'duration'){
+      Navigator.push(
+          context,
+          MaterialPageRoute(
+              builder: (context) => CountdownScreen(
+                duration: workout['exercise']['value'],
+                historyId: workout['id'],)
+          )
+      );
+    } else if (workout['exercise']['type'] == 'frequency'){
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => StopwatchScreen(
+            exerciseName: workout['exercise']['name'],
+            historyId: workout['id'],
+          ),
+        ),
+      );
+    } else {
+      print('Invalid exercise type');
+    }
+  }
+
+  void navigateToExerciseStepDetails(Map<String, dynamic> workout) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ExercisesStepDetails(
+          eObj: workout['exercise'],
+          image: workout['exercise']['image'] ?? 'default_image_url',
+          duration: workout['exercise']['duration']?.toString(),
+          value: workout['exercise']['value']?.toString() ?? '',
+          document: workout['document'],
+          difficulty: workout['exercise']['difficulty'] ?? 'beginner',
+          exerciseName: workout['exercise']['name'],
+          steps: '',
+        ),
+      ),
+    );
+  }
+
   Future<void> _onSeeMorePressed(BuildContext context) async {
     // Simulate data fetching delay
-    await Future.delayed(Duration(seconds: 1));
+    await Future.delayed(const Duration(seconds: 1));
     // Navigate to the desired screen after data fetching
     Navigator.push(
       context,
@@ -162,6 +266,7 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
 
   @override
   Widget build(BuildContext context) {
+    final User? user = _auth.currentUser;
     final media = MediaQuery.of(context).size;
     return Scaffold(
       body: Container(
@@ -257,10 +362,78 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
                   SizedBox(height: media.width * 0.05),
 
                   Container(
+                    padding: EdgeInsets.symmetric(vertical: 15,horizontal: 15),
+                    decoration: BoxDecoration(
+                      color: TColor.primaryColor2.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(10)),
+                    child: Row(
+                      children: [
+                        ClipOval(
+                          child: Image.asset(
+                            'assets/img/5.png',
+                            width: 50,
+                            height: 50,
+                          )
+                        ),
+                        const SizedBox(width: 15),
+                        Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Stay consistent with your workout",
+                                  style: TextStyle(
+                                      color: TColor.black,
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700),
+                                ),
+                                const SizedBox(height: 5),
+                                Text(
+                                  "Your consistency will drive your results!",
+                                  style: TextStyle(
+                                      color: TColor.gray,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500),
+                                ),
+                              ],
+                            )
+                        )
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: media.width * 0.05),
+
+                  Row(
+                    children: [
+                      Text(
+                        "Pending Workout",
+                        style: TextStyle(
+                          color: TColor.black,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w700),
+                      ),
+                      const Spacer(),
+                      InkWell(
+                        onTap:() => _onSeeMorePressed(context),
+                        child: Text(
+                          "See More",
+                          style: TextStyle(
+                              color: TColor.primaryColor2,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700),
+                        ),
+                      )
+                    ],
+                  ),
+
+                  const SizedBox(height: 10),
+
+
+                  Container(
                     padding: const EdgeInsets.symmetric(
                         vertical: 15, horizontal: 15),
                     decoration: BoxDecoration(
-                        color: TColor.primaryColor2.withOpacity(0.3),
+                        color: TColor.primaryColor2.withOpacity(0.2),
                         borderRadius: BorderRadius.circular(15)),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -272,18 +445,24 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700)),
                         SizedBox(
-                          width: 70,
-                          height: 25,
-                          child: RoundButton(
-                            title: "Check",
-                            type: RoundButtonType.bgGradient,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w400,
+                          width: 88,
+                          height: 35,
+                          child: ElevatedButton(
                             onPressed: () => Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                     builder: (context) =>
                                     const WorkoutScheduleView())),
+                            style: ElevatedButton.styleFrom(
+                              primary: TColor.primaryColor2,
+                            ),
+                            child: Text(
+                              "Check",
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: TColor.white,
+                                fontWeight: FontWeight.w400),
+                            ),
                           ),
                         )
                       ],
@@ -300,10 +479,28 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
                           style: TextStyle(
                               color: TColor.black,
                               fontSize: 16,
-                              fontWeight: FontWeight.w700)),
+                              fontWeight: FontWeight.w700)
+                      ),
+                      // const SizedBox(height: 15),
+                      // ListView.builder(
+                      //     itemCount: pendingWorkouts.length,
+                      //     shrinkWrap: true,
+                      //     itemBuilder: (context,index){
+                      //       final workout = pendingWorkouts[index];
+                      //       return const UpcomingWorkoutRow(
+                      //           wObj: '',
+                      //         workout: workout,
+                      //       )
+                      //     }),
                       TextButton(
                         onPressed: () async {
-                          await _onSeeMorePressed(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => ActivityTrackerView(),
+                            ),
+                          );
+                          //await _onSeeMorePressed(context);
                         },
                         child: Text(
                             "See More",
@@ -314,14 +511,164 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
                       )
                     ],
                   ),
-                  ListView.builder(
-                    padding: EdgeInsets.zero,
-                    physics: const NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: latestArr.length,
-                    itemBuilder: (context, index) =>
-                        UpcomingWorkoutRow(wObj: latestArr[index]),
+                  const SizedBox(height: 10),
+
+                  StreamBuilder<List<Map<String, dynamic>>>(
+                    stream: fetchPendingWorkouts(user?.uid ?? ""),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      } else if (snapshot.hasError) {
+                        return Center(child: Text('Error: ${snapshot.error}'));
+                      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Center(child: Text('No upcoming workouts'));
+                      } else {
+                        List<Map<String, dynamic>> pendingWorkouts = snapshot.data!;
+                        return Column(
+                          children: pendingWorkouts.map((workout) {
+                            return GestureDetector(
+                              onTap: () {},
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(vertical: 10),
+                                padding: const EdgeInsets.all(15),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                      colors: [
+                                        TColor.primaryColor1,
+                                        TColor.primaryColor2]
+                                  ),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Row(
+                                  children: [
+                                    // Display the workout image
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: workout['exercise'] != null &&
+                                          workout['exercise']['image'] != null
+                                          ? Image.network(
+                                        workout['exercise']['image'],
+                                        width: 60,
+                                        height: 60,
+                                        fit: BoxFit.cover,
+                                      )
+                                          : Image.asset(
+                                        'assets/img/Workout2.png',
+                                        width: 60,
+                                        height: 60,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    // Display the title and time
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          workout['exercise'] != null
+                                              ? workout['exercise']['title']
+                                              : 'Workout',
+                                          style: TextStyle(
+                                            color: TColor.black,
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 5),
+                                        Text(
+                                          workout['exercise'] != null
+                                              ? workout['exercise']['time'].toString()
+                                              : 'Time Not Set',
+                                          style: TextStyle(
+                                            color: TColor.lightGray,
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        );
+                      }
+                    },
                   ),
+
+                  // const SizedBox(height: 20),
+                  // Align(
+                  //   alignment: Alignment.centerLeft,
+                  //   child: Text(
+                  //     "Latest Activity",
+                  //     style: TextStyle(
+                  //       color: TColor.black,
+                  //       fontSize: 16,
+                  //       fontWeight: FontWeight.w700),
+                  //   ),
+                  // ),
+                  //
+                  // const SizedBox(height: 15),
+                  // Column(
+                  //   children: latestArr.map((latest){
+                  //     return Container(
+                  //       margin: const EdgeInsets.symmetric(vertical: 10),
+                  //       padding: const EdgeInsets.all(15),
+                  //       decoration: BoxDecoration(
+                  //         gradient: LinearGradient(
+                  //             colors: [
+                  //               TColor.primaryColor1,
+                  //               TColor.primaryColor2]
+                  //         ),
+                  //         borderRadius: BorderRadius.circular(10),
+                  //       ),
+                  //       child: Row(
+                  //         children: [
+                  //           ClipRRect(
+                  //             child: Image.asset(
+                  //               latest['image']!,
+                  //               width: 60,
+                  //               height: 60,
+                  //               fit: BoxFit.cover,
+                  //             ),
+                  //           ),
+                  //
+                  //           const SizedBox(width: 10),
+                  //           Column(
+                  //             crossAxisAlignment: CrossAxisAlignment.start,
+                  //             children: [
+                  //               Text(
+                  //                 latest['title']!,
+                  //                 style: TextStyle(
+                  //                   color: TColor.black,
+                  //                   fontSize: 14,
+                  //                   fontWeight: FontWeight.w700),
+                  //               ),
+                  //               const SizedBox(height: 5),
+                  //               Text(
+                  //                 latest['time']!,
+                  //                 style: TextStyle(
+                  //                     color: TColor.lightGray,
+                  //                     fontSize: 12,
+                  //                     fontWeight: FontWeight.w400),
+                  //               ),
+                  //             ],
+                  //           )
+                  //         ],
+                  //       ),
+                  //     );
+                  //   }).toList(),
+                  // ),
+
+                  // ListView.builder(
+                  //   padding: EdgeInsets.zero,
+                  //   physics: const NeverScrollableScrollPhysics(),
+                  //   shrinkWrap: true,
+                  //   itemCount: latestArr.length,
+                  //   itemBuilder: (context, index) =>
+                  //       UpcomingWorkoutRow(wObj: latestArr[index]),
+                  // ),
 
                   SizedBox(height: media.width * 0.05),
 
@@ -357,6 +704,8 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
                           .firstWhere((exercise) =>
                       exercise['title'] == uniqueTitles[index]);
 
+                      final totalTime = totalTimes[uniqueTitles[index]] ?? 0; // get total time for category in seconds
+
                       return WhatTrainRow(
                         wObj: exercise,
                         onViewMorePressed: () {
@@ -364,6 +713,7 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
                               context,
                               exercise['title']);
                         },
+                        totalTime: totalTime,
                       );
                     },
                   ),

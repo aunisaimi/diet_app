@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diet_app/common/color_extension.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -8,9 +9,12 @@ import '../../common/widget/Round_button.dart';
 
 class CountdownScreen extends StatefulWidget {
   final String duration;
+  final String historyId;
+
   const CountdownScreen({
     Key? key,
-    required this.duration
+    required this.duration,
+    required this.historyId
   }) : super(key: key);
 
   @override
@@ -20,6 +24,7 @@ class CountdownScreen extends StatefulWidget {
 class _CountdownScreenState extends State<CountdownScreen>
     with TickerProviderStateMixin{
   late AnimationController controller;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   bool isPlaying = false;
 
@@ -43,10 +48,23 @@ class _CountdownScreenState extends State<CountdownScreen>
     }// true if countdown go to 0:00:00
   }
 
+  void _markAsCompleted(){
+    _firestore.collection('history').doc(widget.historyId).update({
+      'status': 'completed',
+    });
+  }
+
+  void _markAsPending(){
+    _firestore.collection('history').doc(widget.historyId).update({
+      'status': 'pending',
+    });
+  }
+
   @override
   void initState(){
     // TODO: implement initState
     super.initState();
+
     try {
       final durationInSeconds = int.parse(widget.duration);
       controller = AnimationController(
@@ -60,6 +78,7 @@ class _CountdownScreenState extends State<CountdownScreen>
     @override
     void dispose(){
       controller.dispose();
+      _markAsPending();
       super.dispose();
     }
 
@@ -95,6 +114,7 @@ class _CountdownScreenState extends State<CountdownScreen>
         elevation: 1,
         leading: InkWell(
           onTap: () {
+            _markAsPending();
             Navigator.pop(context);
           },
           child: Container(
@@ -187,8 +207,9 @@ class _CountdownScreenState extends State<CountdownScreen>
                     }
                   },
                   child: RoundButton(
-                    icon: isPlaying == true ? Icons.pause :
-                    Icons.play_arrow,
+                    icon: isPlaying == true
+                        ? Icons.pause
+                        : Icons.play_arrow,
                   ),
                 ),
                 GestureDetector(
@@ -198,8 +219,13 @@ class _CountdownScreenState extends State<CountdownScreen>
                       isPlaying = false;
                     });
                   },
-                  child: RoundButton(
-                    icon: Icons.stop,
+                  child: ElevatedButton(
+                    //icon: Icons.stop,
+                    onPressed: () {
+                      _markAsCompleted();
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Finish Workout'),
                   ),
                 )
               ],
