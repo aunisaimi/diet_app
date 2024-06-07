@@ -93,7 +93,7 @@ class _LoginViewState extends State<LoginView> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (context) => MainTabView(),
+          builder: (context) => const MainTabView(),
         ),
       );
     } catch (e) {
@@ -220,7 +220,7 @@ class _LoginViewState extends State<LoginView> {
                          Navigator.push(
                              context,
                              MaterialPageRoute(
-                                 builder: (context) => ForgotPassword()
+                                 builder: (context) => const ForgotPassword()
                              ),
                          );
                       },

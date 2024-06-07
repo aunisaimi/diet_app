@@ -1,5 +1,6 @@
 import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/screen/main_tab/select_view.dart';
+import 'package:diet_app/screen/meal_planner/dietandfitness/meal_plan_view.dart';
 import 'package:diet_app/screen/photo_progress/photo_progress_view.dart';
 import 'package:flutter/material.dart';
 
@@ -94,17 +95,18 @@ class _MainTabViewState extends State<MainTabView> {
                 },
               ),
               const SizedBox(width: 40),
-              TabButton(
-                icon: "assets/img/camera_tab.png",
-                selectIcon: "assets/img/camera_tab_select.png",
-                isActive: _selectTab == 2,
-                onTap: () {
-                  setState(() {
-                    _selectTab = 2;
-                    _currentTab = const PhotoProgressView();
-                  });
-                },
-              ),
+              // TabButton(
+              //   icon: "assets/img/cutlery.png",
+              //   selectIcon: "assets/img/cu.png",
+              //   isActive: _selectTab == 2,
+              //   onTap: () {
+              //     setState(() {
+              //       _selectTab = 2;
+              //       _currentTab =  MealPlanView(remainingCalories: 2500,
+              //         onCaloriesUpdated: (int value) {  },);
+              //     });
+              //   },
+              // ),
               TabButton(
                 icon: "assets/img/user_text.png",
                 selectIcon: "assets/img/profile_tab_select.png",
