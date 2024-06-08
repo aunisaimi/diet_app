@@ -1,17 +1,19 @@
+import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intl/intl.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
+
 import 'package:diet_app/common/color_extension.dart';
-import 'package:diet_app/firebase_options.dart';
 import 'package:diet_app/screen/Theme/theme_provider.dart';
 import 'package:diet_app/screen/main_tab/main_tab_view.dart';
 import 'package:diet_app/screen/on_boarding/started_view.dart';
-import 'package:diet_app/screen/workout_tracker/workout_schedule_view.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:timezone/data/latest.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
+
+import 'package:diet_app/firebase_options.dart';  // Adjust the import path as necessary
+import 'package:diet_app/screen/meal_planner/dietandfitness/diet.dart'; // Adjust the import path as necessary
 
 FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
@@ -20,6 +22,7 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
 
   tz.initializeTimeZones();
 
@@ -47,6 +50,8 @@ void main() async {
     ),
   );
 }
+
+
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key});
@@ -91,7 +96,7 @@ class MyApp extends StatelessWidget {
               brightness: Brightness.dark,
             ),
             home: snapshot.data,
-            //home: WorkoutScheduleView(),
+            //home: Diet(),
           );
         }
       },
