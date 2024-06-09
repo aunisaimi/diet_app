@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/model/diet.dart';
+import 'package:diet_app/model/meal.dart';
 import 'package:diet_app/screen/meal_planner/dietandfitness/MealPlanner.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +9,8 @@ import 'package:flutter/material.dart';
 import '../../../database/auth_service.dart';
 
 class DietScreen extends StatefulWidget {
-  const DietScreen({Key? key}) : super(key: key);
+  final Meal meal;
+  const DietScreen({Key? key, required this.meal}) : super(key: key);
 
   @override
   State<DietScreen> createState() => _DietScreenState();
@@ -172,12 +174,21 @@ class _DietScreenState extends State<DietScreen> {
                     ),
                   ),
                   SizedBox(height: media.width * 0.05),
-                  ...diets.map((diet) {
-                    return ListTile(
-                      title: Text(diet.dietType),
-                      onTap: () => _onDietSelected(diet.dietType),
-                    );
-                  }).toList(),
+                  Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                       // Image.network(meal.image),
+                      ],
+                    ),
+                  ),
+                  // ...diets.map((diet) {
+                  //   return ListTile(
+                  //     title: Text(diet.dietType),
+                  //     onTap: () => _onDietSelected(diet.dietType),
+                  //   );
+                  // }).toList(),
                   SizedBox(height: media.width * 0.05),
                 ],
               ),

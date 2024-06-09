@@ -3,10 +3,13 @@ import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/screen/home/home_view.dart';
 import 'package:diet_app/screen/main_tab/main_tab_view.dart';
+import 'package:diet_app/screen/meal_planner/dietandfitness/MealPlanner.dart';
 import 'package:diet_app/screen/meal_planner/dietandfitness/diet.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+
+import '../../../model/diet.dart';
 
 class MealPlanView extends StatefulWidget {
   final int remainingCalories;
@@ -25,6 +28,7 @@ class _MealPlanViewState extends State<MealPlanView> {
   String searchText = '';
   String selectedCategory = 'Breakfast';
   TextEditingController searchController = TextEditingController();
+  List<Diet> diets = [];
 
   Map<String, Map<String, dynamic>> selectedMeals = {
     "Breakfast": {},
@@ -161,16 +165,6 @@ class _MealPlanViewState extends State<MealPlanView> {
     return total;
   }
 
-  // int get totalFat {
-  //   int total = 0;
-  //   selectedMeals.forEach((key, meal) {
-  //     if (meal.isNotEmpty) {
-  //       total += meal["fat"] as int;
-  //     }
-  //   });
-  //   return total;
-  // }
-
   @override
   void initState() {
     super.initState();
@@ -182,21 +176,10 @@ class _MealPlanViewState extends State<MealPlanView> {
     setState(() {
       selectedMeals = meals;
     });
-    // SharedPreferences prefs = await SharedPreferences.getInstance();
-    // String? selectedMealsString = prefs.getString('selectedMeals');
-    // if (selectedMealsString != null) {
-    //   setState(() {
-    //     selectedMeals = (jsonDecode(selectedMealsString) as Map<String, dynamic>).map((key, value) => MapEntry(key, Map<String, dynamic>.from(value)));
-    //   });
-    // }
   }
 
   Future<void> _saveData() async {
     await PreferencesHelper.saveSelectedMeals(selectedMeals);
-    // SharedPreferences prefs = await SharedPreferences.getInstance();
-    // await prefs.setString(
-    //     'selectedMeals',
-    //     jsonEncode(selectedMeals));
   }
 
   @override
@@ -446,7 +429,8 @@ class _MealPlanViewState extends State<MealPlanView> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => DietScreen()
+                        builder: (context) => MealPlanner(dietType:  diets.map(
+                                (diet) => diet.dietType).toList())
                     )
                 );
               },

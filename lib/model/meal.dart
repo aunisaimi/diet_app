@@ -10,6 +10,7 @@ class Meal {
   final String title;
   final String recommend;
   final String dietId;
+  final String tips;
   final String dietType;
 
   Meal({
@@ -22,7 +23,8 @@ class Meal {
     required this.title,
     required this.recommend,
     required this.image,
-    required this.dietType
+    required this.dietType,
+    required this.tips
   });
 
   factory Meal.fromFirestore(DocumentSnapshot doc) {
@@ -38,6 +40,7 @@ class Meal {
       image: data['image'] ?? '', // Make sure to provide a default value
       dietId: data['dietId'] ?? '',
       dietType: data['dietType'] ?? '',
+      tips: data['tips'] ?? '',
     );
   }
 
@@ -53,6 +56,7 @@ class Meal {
       'image': image,
       'dietId': dietId,
       'dietType': dietType,
+      'tips': tips,
     };
   }
 
