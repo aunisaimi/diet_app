@@ -129,13 +129,51 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
     }
   }
 
+  // Future<String> _addToHistory({required String userId, required Map exercise, required String status}) async {
+  //   try {
+  //     DocumentReference historyRef = await _firestore.collection('history').add({
+  //       'userId': userId,
+  //       'exercise': exercise,
+  //       'status': status,
+  //       'timestamp': FieldValue.serverTimestamp(),
+  //     });
+  //
+  //     String historyId = historyRef.id; // Get the generated history ID
+  //     print("Exercise added to the history: ${exercise['name']}");
+  //     print("Generated historyId: $historyId"); // Print the generated historyId
+  //     return historyId; // Return the generated historyId
+  //   } catch (e, stackTrace) {
+  //     print("Error adding to Firestore history: $e");
+  //     print(stackTrace);
+  //     return ''; // Return an empty string if an error occurs
+  //   }
+  // }
+
   Future<String> _addToHistory({required String userId, required Map exercise, required String status}) async {
     try {
+      // Fetch user details from the 'users' collection
+      DocumentSnapshot<Map<String, dynamic>> userDoc = await _firestore.collection('users').doc(userId).get();
+
+      if (!userDoc.exists) {
+        print("User details not found for userId: $userId");
+        return '';
+      }
+
+      // Retrieve only the necessary user details
+      Map<String, dynamic> userDetails = userDoc.data() ?? {};
+      Map<String, dynamic> selectedUserDetails = {
+        'fname': userDetails['fname'],
+        'weight': userDetails['weight'],
+        'bmi': userDetails['bmi'],
+      };
+
+      // Add the exercise and selected user details to the 'history' collection
       DocumentReference historyRef = await _firestore.collection('history').add({
         'userId': userId,
         'exercise': exercise,
         'status': status,
         'timestamp': FieldValue.serverTimestamp(),
+        'userDetails': selectedUserDetails, // Include only selected user details
       });
 
       String historyId = historyRef.id; // Get the generated history ID
@@ -148,6 +186,44 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
       return ''; // Return an empty string if an error occurs
     }
   }
+
+
+  // Future<String> _addToHistory({required String userId, required Map exercise, required String status}) async {
+  //   try {
+  //     // Fetch user details from the 'users' collection
+  //     DocumentSnapshot<Map<String, dynamic>> userDoc = await _firestore
+  //         .collection('users')
+  //         .doc(userId)
+  //         .get();
+  //
+  //     if (!userDoc.exists) {
+  //       print("User details not found for userId: $userId");
+  //       return '';
+  //     }
+  //
+  //     // Retrieve user details
+  //     Map<String, dynamic> userDetails = userDoc.data() ?? {};
+  //
+  //     // Add the exercise and user details to the 'history' collection
+  //     DocumentReference historyRef = await _firestore.collection('history').add({
+  //       'userId': userId,
+  //       'exercise': exercise,
+  //       'status': status,
+  //       'timestamp': FieldValue.serverTimestamp(),
+  //       'userDetails': userDetails, // Include user details
+  //     });
+  //
+  //     String historyId = historyRef.id; // Get the generated history ID
+  //     print("Exercise added to the history: ${exercise['name']}");
+  //     print("Generated historyId: $historyId"); // Print the generated historyId
+  //     return historyId; // Return the generated historyId
+  //   } catch (e, stackTrace) {
+  //     print("Error adding to Firestore history: $e");
+  //     print(stackTrace);
+  //     return ''; // Return an empty string if an error occurs
+  //   }
+  // }
+
 
   Future<void> _updateHistoryStatus(String historyId, String status) async {
     try {
