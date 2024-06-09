@@ -174,79 +174,100 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
   }
 
 
-  Stream<List<Map<String, dynamic>>> fetchPendingWorkouts(String userId) {
-    return _firestore
-        .collection('history')
-        .where('userId', isEqualTo: userId)
-        .where('status', isEqualTo: 'pending')
-        .snapshots()
-        .map((snapshot) => snapshot.docs.map(
-            (doc) => doc.data() as Map<String, dynamic>).toList());
-  }
-
   // Stream<List<Map<String, dynamic>>> fetchPendingWorkouts(String userId) {
   //   return _firestore
   //       .collection('history')
   //       .where('userId', isEqualTo: userId)
   //       .where('status', isEqualTo: 'pending')
   //       .snapshots()
-  //       .map((snapshot) {
-  //     return snapshot.docs.map((doc) => {
-  //       'id': doc.id,
-  //       ...doc.data(),
-  //     }).toList();
-  //   });
+  //       .map((snapshot) => snapshot.docs.map(
+  //           (doc) => doc.data() as Map<String, dynamic>).toList());
   // }
 
+  Stream<List<Map<String, dynamic>>> fetchPendingWorkouts(String userId) {
+    return _firestore
+        .collection('history')
+        .where('userId', isEqualTo: userId)
+        .where('status', isEqualTo: 'pending')
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) {
+      var data = doc.data() as Map<String, dynamic>;
+      data['id'] = doc.id; // Include the document ID
+      return data;
+    }).toList());
+  }
 
   Future<void> fetchUserPendingWorkouts() async {
     final User? user = _auth.currentUser;
-    if(user != null) {
-      List<Map<String,dynamic>> workouts = (await fetchPendingWorkouts(user.uid)) as List<Map<String, dynamic>>;
-      setState(() {
-        pendingWorkouts = workouts;
+    if (user != null) {
+      fetchPendingWorkouts(user.uid).listen((workouts) {
+        setState(() {
+          pendingWorkouts = workouts;
+        });
       });
     }
   }
 
-  void resumeWorkout(Map<String,dynamic> workout){
-    if(workout['exercise']['type'] == 'duration'){
-      Navigator.push(
+
+  // Future<void> fetchUserPendingWorkouts() async {
+  //   final User? user = _auth.currentUser;
+  //   if(user != null) {
+  //     List<Map<String,dynamic>> workouts = (await fetchPendingWorkouts(user.uid)) as List<Map<String, dynamic>>;
+  //     setState(() {
+  //       pendingWorkouts = workouts;
+  //     });
+  //   }
+  // }
+
+  void resumeWorkout(Map<String, dynamic> workout) {
+    String? historyId = workout['id'];
+    print('History ID: $historyId');
+
+    if (historyId != null && historyId.isNotEmpty) {
+      if (workout['exercise']['type'] == 'duration') {
+        Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) => CountdownScreen(
-                duration: workout['exercise']['value'],
-                historyId: workout['id'],)
-          )
-      );
-    } else if (workout['exercise']['type'] == 'frequency'){
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => StopwatchScreen(
-            exerciseName: workout['exercise']['name'],
-            historyId: workout['id'],
+            builder: (context) => CountdownScreen(
+              duration: workout['exercise']['value'],
+              historyId: historyId,
+            ),
           ),
-        ),
-      );
+        );
+      } else if (workout['exercise']['type'] == 'frequency') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => StopwatchScreen(
+              exerciseName: workout['exercise']['name'],
+              historyId: historyId,
+            ),
+          ),
+        );
+      } else {
+        print('Invalid exercise type');
+      }
     } else {
-      print('Invalid exercise type');
+      print('Invalid historyId: $historyId');
+      // Handle the case where historyId is null or empty
     }
   }
 
+
   void navigateToExerciseStepDetails(Map<String, dynamic> workout) {
+    print('HistoryId: ${workout['id']}');
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => ExercisesStepDetails(
           eObj: workout['exercise'],
           image: workout['exercise']['image'] ?? 'default_image_url',
-          duration: workout['exercise']['duration']?.toString(),
-          value: workout['exercise']['value']?.toString() ?? '',
+          duration: workout['exercise']['duration']?.toString() ?? '0',
+          value: workout['exercise']['value']?.toString() ?? '0',
           document: workout['document'] ?? '',
           difficulty: workout['exercise']['difficulty'] ?? 'beginner',
-          exerciseName: workout['exercise']['name'],
-          steps: workout['exercise']?['name'] ?? '',
+          exerciseName: workout['exercise']['name']?? 'Unnamed Exercise',
+          steps: workout['exercise']?['steps'] ?? '',
           historyId: workout['id'] ?? '',
         ),
       ),
@@ -519,7 +540,8 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
                             return GestureDetector(
                               onTap: () {
                                 // Navigate to the exercise details screen and pass the workout details
-                                navigateToExerciseStepDetails(workout);
+                               resumeWorkout(workout);
+                                // navigateToExerciseStepDetails(workout);
                               },
                               child: Container(
                                 margin: const EdgeInsets.symmetric(vertical: 10),

@@ -1,16 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
-import 'package:diet_app/common/common_widget/step_detail_row.dart';
-import 'package:diet_app/model/exercises.dart';
 import 'package:diet_app/model/steps.dart';
 import 'package:diet_app/screen/countdown/countdown_screen.dart';
 import 'package:diet_app/screen/countdown/stopwatch_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:readmore/readmore.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../database/auth_service.dart';
 
@@ -133,7 +129,7 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
     }
   }
 
-  Future<String> _addToHistory({required String userId,required Map exercise, required String status}) async {
+  Future<String> _addToHistory({required String userId, required Map exercise, required String status}) async {
     try {
       DocumentReference historyRef = await _firestore.collection('history').add({
         'userId': userId,
@@ -142,24 +138,33 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
         'timestamp': FieldValue.serverTimestamp(),
       });
 
+      String historyId = historyRef.id; // Get the generated history ID
       print("Exercise added to the history: ${exercise['name']}");
-      return historyRef.id; // return history doc ID
-    } catch (e,stackTrace){
-      print("Error adding to firestore history: $e");
+      print("Generated historyId: $historyId"); // Print the generated historyId
+      return historyId; // Return the generated historyId
+    } catch (e, stackTrace) {
+      print("Error adding to Firestore history: $e");
       print(stackTrace);
-      return '';
+      return ''; // Return an empty string if an error occurs
     }
   }
 
   Future<void> _updateHistoryStatus(String historyId, String status) async {
     try {
+      print('history id : $historyId');
+      if (historyId.isEmpty) {
+        throw Exception("Invalid historyId");
+      }
+
       await _firestore.collection('history').doc(historyId).update({
         'status': status,
-        'completedAt': FieldValue.serverTimestamp(), // optional: track completion time
+        'completedAt': FieldValue.serverTimestamp(),
       });
+
       print("History status updated to $status");
-    } catch (e) {
+    } catch (e, printStack) {
       print("Error updating history status: $e");
+      print(printStack);
     }
   }
 
@@ -371,51 +376,59 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
                 elevation: 1,
                 onPressed: () async {
                   final User? user = _auth.currentUser;
-                  if(user != null){
+                  if (user != null) {
                     String historyId = await _addToHistory(
                       userId: user.uid,
                       exercise: widget.eObj,
                       status: "pending",
                     );
-                    if (widget.type == 'duration' && widget.value != null) {
-                      Navigator.push(
+                    if (historyId.isNotEmpty) {
+                      if (widget.type == 'duration' && widget.value.isNotEmpty) {
+                        Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) => CountdownScreen(
-                                duration: widget.value!,
-                                historyId: historyId,
-                              )
-                          )
-                      );
-                    }
-                    else if (widget.type == 'frequency'){
-                      Navigator.push(
+                            builder: (context) => CountdownScreen(
+                              duration: widget.value,
+                              historyId: historyId,
+                            ),
+                          ),
+                        );
+                      } else if (widget.type == 'frequency') {
+                        Navigator.push(
                           context,
                           MaterialPageRoute(
-                              builder: (context) =>
-                                  StopwatchScreen(
-                                      exerciseName: widget.exerciseName,
-                                      historyId: historyId)
-                          )
-                      );
+                            builder: (context) => StopwatchScreen(
+                              exerciseName: widget.exerciseName,
+                              historyId: historyId,
+                            ),
+                          ),
+                        );
+                      } else {
+                        print('Invalid exercise type');
+                      }
+                    } else {
+                      print('Failed to add workout to history');
                     }
-                    else {
-                      print('Invalid exercise type');
-                    }
-                  }
-                  else {
+                  } else {
                     print("No User signed in");
                   }
                 },
               ),
+              const SizedBox(height: 15),
               RoundButton(
-                  title: "Complete Workout",
-                  elevation: 1,
-                  onPressed: () async {
+                title: "Complete Workout",
+                elevation: 1,
+                onPressed: () async {
+                  if (widget.historyId != null && widget.historyId.isNotEmpty) {
                     await _updateHistoryStatus(widget.historyId, "completed");
                     Navigator.pop(context);
-                  }),
-              const SizedBox(height: 15),
+                  } else {
+                    print("HistoryId is null or empty.");
+                    // Handle the case where historyId is null or empty
+                  }
+                },
+              )
+              //const SizedBox(height: 15),
             ],
           ),
         ),
