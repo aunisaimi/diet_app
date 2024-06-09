@@ -26,6 +26,7 @@ class ExercisesStepDetails extends StatefulWidget {
   final String? description;
   final String steps;
   String? type;
+  final String historyId;
   //Function(Map<String,dynamic>) createHistoryEntry;
 
    ExercisesStepDetails({
@@ -40,6 +41,7 @@ class ExercisesStepDetails extends StatefulWidget {
     this.description,
     required this.steps,
     this.type,
+    required this.historyId,
     // required this.createHistoryEntry
   }) : super(key: key);
 
@@ -149,6 +151,18 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
     }
   }
 
+  Future<void> _updateHistoryStatus(String historyId, String status) async {
+    try {
+      await _firestore.collection('history').doc(historyId).update({
+        'status': status,
+        'completedAt': FieldValue.serverTimestamp(), // optional: track completion time
+      });
+      print("History status updated to $status");
+    } catch (e) {
+      print("Error updating history status: $e");
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -157,8 +171,6 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
     //fetchExerciseName();
     fetchSteps();
   }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -396,6 +408,13 @@ class _ExercisesStepDetailsState extends State<ExercisesStepDetails> {
                   }
                 },
               ),
+              RoundButton(
+                  title: "Complete Workout",
+                  elevation: 1,
+                  onPressed: () async {
+                    await _updateHistoryStatus(widget.historyId, "completed");
+                    Navigator.pop(context);
+                  }),
               const SizedBox(height: 15),
             ],
           ),

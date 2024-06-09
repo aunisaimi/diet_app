@@ -243,10 +243,11 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
           image: workout['exercise']['image'] ?? 'default_image_url',
           duration: workout['exercise']['duration']?.toString(),
           value: workout['exercise']['value']?.toString() ?? '',
-          document: workout['document'],
+          document: workout['document'] ?? '',
           difficulty: workout['exercise']['difficulty'] ?? 'beginner',
           exerciseName: workout['exercise']['name'],
-          steps: '',
+          steps: workout['exercise']?['name'] ?? '',
+          historyId: workout['id'] ?? '',
         ),
       ),
     );
@@ -406,23 +407,23 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
                   Row(
                     children: [
                       Text(
-                        "Pending Workout",
+                        "Workout Schedule",
                         style: TextStyle(
                           color: TColor.black,
                           fontSize: 15,
                           fontWeight: FontWeight.w700),
                       ),
                       const Spacer(),
-                      InkWell(
-                        onTap:() => _onSeeMorePressed(context),
-                        child: Text(
-                          "See More",
-                          style: TextStyle(
-                              color: TColor.primaryColor2,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700),
-                        ),
-                      )
+                      // InkWell(
+                      //   onTap:() => _onSeeMorePressed(context),
+                      //   child: Text(
+                      //     "See More",
+                      //     style: TextStyle(
+                      //         color: TColor.primaryColor2,
+                      //         fontSize: 14,
+                      //         fontWeight: FontWeight.w700),
+                      //   ),
+                      // )
                     ],
                   ),
 
@@ -481,37 +482,26 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
                               fontSize: 16,
                               fontWeight: FontWeight.w700)
                       ),
-                      // const SizedBox(height: 15),
-                      // ListView.builder(
-                      //     itemCount: pendingWorkouts.length,
-                      //     shrinkWrap: true,
-                      //     itemBuilder: (context,index){
-                      //       final workout = pendingWorkouts[index];
-                      //       return const UpcomingWorkoutRow(
-                      //           wObj: '',
-                      //         workout: workout,
-                      //       )
-                      //     }),
-                      TextButton(
-                        onPressed: () async {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ActivityTrackerView(),
-                            ),
-                          );
-                          //await _onSeeMorePressed(context);
-                        },
-                        child: Text(
-                            "See More",
-                            style: TextStyle(
-                                color: TColor.gray,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700)),
-                      )
+                      // TextButton(
+                      //   onPressed: () async {
+                      //     Navigator.push(
+                      //       context,
+                      //       MaterialPageRoute(
+                      //         builder: (context) => ActivityTrackerView(),
+                      //       ),
+                      //     );
+                      //     //await _onSeeMorePressed(context);
+                      //   },
+                      //   child: Text(
+                      //       "See More",
+                      //       style: TextStyle(
+                      //           color: TColor.gray,
+                      //           fontSize: 14,
+                      //           fontWeight: FontWeight.w700)),
+                      // )
                     ],
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 8),
 
                   StreamBuilder<List<Map<String, dynamic>>>(
                     stream: fetchPendingWorkouts(user?.uid ?? ""),
@@ -527,7 +517,10 @@ class _WorkoutTrackerViewState extends State<WorkoutTrackerView> {
                         return Column(
                           children: pendingWorkouts.map((workout) {
                             return GestureDetector(
-                              onTap: () {},
+                              onTap: () {
+                                // Navigate to the exercise details screen and pass the workout details
+                                navigateToExerciseStepDetails(workout);
+                              },
                               child: Container(
                                 margin: const EdgeInsets.symmetric(vertical: 10),
                                 padding: const EdgeInsets.all(15),

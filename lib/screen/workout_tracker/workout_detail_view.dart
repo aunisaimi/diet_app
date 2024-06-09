@@ -450,6 +450,7 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                                                       steps: '',
                                                       type: type,
                                                       value: value,
+                                                      historyId: '',
                                                     ),
                                                   ),
                                                 );
@@ -475,6 +476,7 @@ class _WorkoutDetailViewState extends State<WorkoutDetailView> {
                                                   steps: '',
                                                   value: value,
                                                   type: type,
+                                                  historyId: '',
                                                 ),
                                               ),
                                             );
