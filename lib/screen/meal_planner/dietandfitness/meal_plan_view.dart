@@ -29,6 +29,7 @@ class _MealPlanViewState extends State<MealPlanView> {
   String selectedCategory = 'Breakfast';
   TextEditingController searchController = TextEditingController();
   List<Diet> diets = [];
+  late int _remainingCalories;
 
   Map<String, Map<String, dynamic>> selectedMeals = {
     "Breakfast": {},
@@ -169,6 +170,13 @@ class _MealPlanViewState extends State<MealPlanView> {
   void initState() {
     super.initState();
     _loadData();
+    _remainingCalories = widget.remainingCalories;
+    _saveRemainingCalories(_remainingCalories);
+  }
+
+  void _saveRemainingCalories(int calories) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('remainingCalories', calories);
   }
 
   Future<void> _loadData() async {
@@ -200,6 +208,7 @@ class _MealPlanViewState extends State<MealPlanView> {
             Icons.arrow_back_ios_new_rounded,
           ),
         ),
+
         title: Text(
           "Meal Plan",
           style: TextStyle(
@@ -208,6 +217,22 @@ class _MealPlanViewState extends State<MealPlanView> {
             fontWeight: FontWeight.w600,
           ),
         ),
+        actions: [
+          IconButton(
+            onPressed: () {
+              widget.onCaloriesUpdated(remainingCalories);
+              SharedPreferences.getInstance().then((prefs) {
+                prefs.setInt('remainingCalories', remainingCalories);
+              });
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Remaining calories saved.'),
+                ),
+              );
+            },
+            icon: const Icon(Icons.save),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -417,15 +442,6 @@ class _MealPlanViewState extends State<MealPlanView> {
               title: "Go to Diet Screen",
               type: RoundButtonType.bgSGradient,
               onPressed: (){
-                // widget.onCaloriesUpdated(remainingCalories);
-                // Navigator.pop(context);
-                // Navigator.push(
-                //     context,
-                //     MaterialPageRoute(
-                //         builder: (context)=> MainTabView(
-                //             remainingCalories: remainingCalories)
-                //     )
-                // );
                 Navigator.push(
                     context,
                     MaterialPageRoute(

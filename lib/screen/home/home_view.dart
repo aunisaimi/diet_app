@@ -5,11 +5,13 @@ import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/common/common_widget/workout_row.dart';
 import 'package:diet_app/screen/bmi/bmiCalculator.dart';
+import 'package:diet_app/screen/meal_planner/dietandfitness/meal_plan_view.dart';
 import 'package:diet_app/screen/on_boarding/started_view.dart';
 import 'package:dotted_dashed_line/dotted_dashed_line.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_animation_progress_bar/simple_animation_progress_bar.dart';
 import 'package:simple_circular_progress_bar/simple_circular_progress_bar.dart';
 
@@ -23,6 +25,7 @@ class HomeView extends StatefulWidget {
   late bool logGoogle = false;
 
   HomeView({Key? key, required this.remainingCalories}) : super(key : key);
+
   HomeView.loginWithGoogle(logGoogle, this.remainingCalories){
     this.logGoogle = logGoogle;
   }
@@ -50,12 +53,11 @@ class _HomeViewState extends State<HomeView> {
   double? bmiPercentage;
   String? bmiMessage;
   String bmiStatus = "";
-  int _selectTab = 0;
-  late Widget _currentTab;
-  //double _sliderValue = 0.0;
 
+
+  //late int _remainingCalories;
   int _remainingCalories = 2500;
-  late ValueNotifier<double> _progressNotifier;
+  late ValueNotifier<double> _progressNotifier = ValueNotifier(0);
 
   bool logGoogle;
   _HomeViewState(this.logGoogle);
@@ -78,13 +80,6 @@ class _HomeViewState extends State<HomeView> {
     return total;
   }
 
-  // Define a list of images or widgets for the carousel
-  final List<String> imgList =[
-    'assets/img/1.png',
-    'assets/img/2.png',
-    'assets/img/3.png',
-  ];
-
   @override
   void initState() {
     super.initState();
@@ -95,7 +90,49 @@ class _HomeViewState extends State<HomeView> {
     _remainingCalories = widget.remainingCalories;
     _progressNotifier = ValueNotifier(_calculateProgress(widget.remainingCalories));
     _loadData();
+    _loadRemainingCalories();
   }
+
+  Future<void> _loadRemainingCalories() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _remainingCalories = prefs.getInt('remainingCalories') ?? widget.remainingCalories;
+      _progressNotifier.value = _calculateProgress(_remainingCalories);
+
+      // Debugging prints
+      print("Loaded remaining calories: $_remainingCalories");
+      print("Calculated progress: ${_progressNotifier.value}");
+    });
+  }
+
+  Future<void> _updateRemainingCalories(int updatedCalories) async {
+    setState(() {
+      _remainingCalories = updatedCalories;
+      _progressNotifier.value = _calculateProgress(_remainingCalories);
+    });
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('remainingCalories', _remainingCalories);
+  }
+
+
+  double _calculateProgress(int remainingCalories) {
+    const int dailyCalorieGoal = 2500; // default daily goal is 2500kcal
+    double progress = (remainingCalories / dailyCalorieGoal) * 100;
+
+    // Debugging print
+    print("Progress calculation: $remainingCalories / $dailyCalorieGoal = $progress");
+
+    return progress;
+  }
+
+  // Define a list of images or widgets for the carousel
+  final List<String> imgList =[
+    'assets/img/1.png',
+    'assets/img/2.png',
+    'assets/img/3.png',
+  ];
+
+
 
   Future<void> _loadData() async{
     var meals = await PreferencesHelper.loadSelectedMeals();
@@ -140,10 +177,6 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
-  double _calculateProgress(int remainingCalories){
-    const int dailyCalorieGoal = 2500; // default daily goal is 2500kcal
-    return (_remainingCalories / dailyCalorieGoal) * 100;
-  }
 
 
   double calculateBMIPercentage(double bmi){
@@ -313,6 +346,7 @@ class _HomeViewState extends State<HomeView> {
   @override
   Widget build(BuildContext context) {
     var media = MediaQuery.of(context).size;
+    print("Building HomeView with remaining calories: $_remainingCalories");
 
     final lineBarsData = [
       LineChartBarData(
@@ -372,7 +406,9 @@ class _HomeViewState extends State<HomeView> {
                       onPressed: () {
                         logout(context);
                       },
-                      icon: const Icon(Icons.exit_to_app_rounded,size: 25,),
+                      icon: const Icon(
+                        Icons.exit_to_app_rounded,
+                        size: 25,),
                     ),
                   ],
                 ),
@@ -981,27 +1017,24 @@ class _HomeViewState extends State<HomeView> {
                                               height: media.width * 0.15,
                                               alignment: Alignment.center,
                                               decoration: BoxDecoration(
-                                                gradient: LinearGradient(
-                                                    colors: TColor.primaryG),
-                                                borderRadius: BorderRadius.circular(
-                                                    media.width * 0.075),
+                                                gradient: LinearGradient(colors: TColor.primaryG),
+                                                borderRadius: BorderRadius.circular(media.width * 0.075),
                                               ),
                                               child: FittedBox(
                                                 child: Text(
                                                   "$_remainingCalories kCal\nleft",
-                                                  //"230kCal\nleft",
                                                   textAlign: TextAlign.center,
                                                   style: TextStyle(
-                                                      color: TColor.white,
-                                                      fontSize: 11),
+                                                    color: TColor.white,
+                                                    fontSize: 11,
+                                                  ),
                                                 ),
                                               ),
                                             ),
                                             SimpleCircularProgressBar(
                                               progressStrokeWidth: 10,
                                               backStrokeWidth: 10,
-                                              progressColors: [
-                                                TColor.secondaryColor2, TColor.secondaryColor1],
+                                              progressColors: [TColor.secondaryColor2, TColor.secondaryColor1],
                                               backColor: Colors.grey.shade100,
                                               valueNotifier: _progressNotifier,
                                               startAngle: -180,
@@ -1009,9 +1042,29 @@ class _HomeViewState extends State<HomeView> {
                                           ],
                                         ),
                                       ),
-                                    )
-                                  ]),
+                                    ),
+                                  ]
+                              ),
                             ),
+                            Padding(
+                              padding: EdgeInsets.all(16),
+                              child: ElevatedButton(
+                                onPressed: (){
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => MealPlanView(
+                                        remainingCalories: _remainingCalories,
+                                        onCaloriesUpdated: (updatedCalories) {
+                                          _updateRemainingCalories(updatedCalories);
+                                        },
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Text("Go to Meal Plan"),
+                              ),
+                            )
                           ],
                         )
                     )
