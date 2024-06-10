@@ -1,4 +1,7 @@
 
+import 'package:diet_app/model/diet.dart';
+import 'package:diet_app/screen/meal_planner/dietandfitness/MealPlanner.dart';
+import 'package:diet_app/screen/meal_planner/dietandfitness/diet.dart';
 import 'package:diet_app/screen/meal_planner/dietandfitness/meal_plan_view.dart';
 import 'package:diet_app/screen/water_intake/water_intake.dart';
 import 'package:diet_app/screen/workout_tracker/add_exercise.dart';
@@ -12,6 +15,7 @@ class SelectView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    List<Diet> diets = [];
     // var media = MediaQuery.of(context).size;
 
     return Scaffold(
@@ -52,12 +56,13 @@ class SelectView extends StatelessWidget {
             const SizedBox(height: 15),
 
             RoundButton(
-                title: "Water Intake",
+                title: "Diet Helper",
                 onPressed: () {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const WaterIntake(),
+                      builder: (context) =>  MealPlanner(dietType:  diets.map(
+                              (diet) => diet.dietType).toList()),
                     ),
                   );
                 }),
