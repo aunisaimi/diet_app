@@ -11,6 +11,7 @@ import 'package:dotted_dashed_line/dotted_dashed_line.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:simple_animation_progress_bar/simple_animation_progress_bar.dart';
 import 'package:simple_circular_progress_bar/simple_circular_progress_bar.dart';
@@ -95,14 +96,19 @@ class _HomeViewState extends State<HomeView> {
 
   Future<void> _loadRemainingCalories() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _remainingCalories = prefs.getInt('remainingCalories') ?? widget.remainingCalories;
-      _progressNotifier.value = _calculateProgress(_remainingCalories);
+    String? lastUpdateDate = prefs.getString('lastUpdateDate');
+    String currentDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
 
-      // Debugging prints
-      print("Loaded remaining calories: $_remainingCalories");
-      print("Calculated progress: ${_progressNotifier.value}");
-    });
+    if (lastUpdateDate == null || lastUpdateDate != currentDate) {
+      // Reset remaining calories if date has changed
+      await _updateRemainingCalories(widget.remainingCalories);
+      await prefs.setString('lastUpdateDate', currentDate);
+    } else {
+      setState(() {
+        _remainingCalories = prefs.getInt('remainingCalories') ?? widget.remainingCalories;
+        _progressNotifier.value = _calculateProgress(_remainingCalories);
+      });
+    }
   }
 
   Future<void> _updateRemainingCalories(int updatedCalories) async {

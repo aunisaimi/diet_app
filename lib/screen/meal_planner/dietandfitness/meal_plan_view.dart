@@ -6,6 +6,7 @@ import 'package:diet_app/screen/main_tab/main_tab_view.dart';
 import 'package:diet_app/screen/meal_planner/dietandfitness/MealPlanner.dart';
 import 'package:diet_app/screen/meal_planner/dietandfitness/diet.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -223,6 +224,9 @@ class _MealPlanViewState extends State<MealPlanView> {
               widget.onCaloriesUpdated(remainingCalories);
               SharedPreferences.getInstance().then((prefs) {
                 prefs.setInt('remainingCalories', remainingCalories);
+                prefs.setString(
+                    'lastUpdateDate',
+                    DateFormat('yyyy-MM-dd').format(DateTime.now()));
               });
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
