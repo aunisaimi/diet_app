@@ -115,168 +115,19 @@ class _ProfileViewState extends State<ProfileView> {
     }
   }
 
-
-
-
-  // @override
-  // Widget build(BuildContext context) {
-  //   return Scaffold(
-  //     appBar: AppBar(
-  //       backgroundColor: TColor.white,
-  //       centerTitle: true,
-  //       elevation: 0,
-  //       leadingWidth: 0,
-  //       title: const Text(
-  //         "Profile",
-  //         style: TextStyle(
-  //           color: Colors.black,
-  //           fontSize: 18,
-  //           fontWeight: FontWeight.w700,
-  //         ),
-  //       ),
-  //       actions: [
-  //         InkWell(
-  //           onTap: () {
-  //             Navigator.push(
-  //                 context,
-  //                 MaterialPageRoute(
-  //                     builder: (context) => const ThemePage())
-  //             );
-  //           },
-  //           child: Container(
-  //             margin: const EdgeInsets.all(8),
-  //             height: 40,
-  //             width: 40,
-  //             alignment: Alignment.center,
-  //             decoration: BoxDecoration(
-  //               color: TColor.lightGray,
-  //               borderRadius: BorderRadius.circular(10),
-  //             ),
-  //             child: const Icon(Icons.more_horiz_rounded),
-  //           ),
-  //         )
-  //       ],
-  //     ),
-  //     backgroundColor: TColor.white,
-  //     body: SingleChildScrollView(
-  //       child: Container(
-  //         padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 25),
-  //         child: Column(
-  //           crossAxisAlignment: CrossAxisAlignment.stretch,
-  //           children: [
-  //             Row(
-  //               children: [
-  //                 ClipRRect(
-  //                   borderRadius: BorderRadius.circular(30),
-  //                   child: profilePicture.isNotEmpty
-  //                       ? Image.network(
-  //                       profilePicture,
-  //                       width: 50,
-  //                       height: 50,
-  //                       fit: BoxFit.cover)
-  //                       : Image.asset(
-  //                     "assets/img/workingcats.jpg",
-  //                     width: 50,
-  //                     height: 50,
-  //                     fit: BoxFit.cover,
-  //                   ),
-  //                 ),
-  //                 const SizedBox(width: 10),
-  //                 Expanded(
-  //                   child: Column(
-  //                     crossAxisAlignment: CrossAxisAlignment.start,
-  //                     children: [
-  //                       Text(
-  //                         "${_firstnameController.text} ${_lastnameController.text}",
-  //                         style: TextStyle(
-  //                           color: TColor.black,
-  //                           fontSize: 14,
-  //                           fontWeight: FontWeight.w600,
-  //                         ),
-  //                       ),
-  //                       Text(
-  //                         "${_goalController.text}", // Update this
-  //                         style: TextStyle(
-  //                           color: TColor.gray,
-  //                           fontSize: 12,
-  //                         ),
-  //                       )
-  //                     ],
-  //                   ),
-  //                 ),
-  //                 SizedBox(
-  //                   width: 70,
-  //                   height: 70,
-  //                   child: RoundButton(
-  //                     title: "Edit",
-  //                     type: RoundButtonType.bgSGradient,
-  //                     fontSize: 12,
-  //                     fontWeight: FontWeight.w400,
-  //                     onPressed: () {
-  //                       Navigator.push(
-  //                           context,
-  //                           MaterialPageRoute(
-  //                               builder: (context) => const EditProfile())
-  //                       );
-  //                     },
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //             const SizedBox(height: 15),
-  //             Row(
-  //               children: [
-  //                 Expanded(
-  //                   child: TitleSubtitleCell(
-  //                     title: txtHeight.text,
-  //                     subtitle: "Height",
-  //                   ),
-  //                 ),
-  //                 const SizedBox(width: 15),
-  //                 Expanded(
-  //                   child: TitleSubtitleCell(
-  //                     title: txtWeight.text,
-  //                     subtitle: "Weight",
-  //                   ),
-  //                 ),
-  //                 const SizedBox(width: 15),
-  //                 Expanded(
-  //                   child: TitleSubtitleCell(
-  //                     title: _genderController.text,
-  //                     subtitle: "Gender",
-  //                   ),
-  //                 ),
-  //               ],
-  //             ),
-  //             const SizedBox(height: 20),
-  //             Text(
-  //               "Exercise History",
-  //               style: TextStyle(
-  //                 color: TColor.black,
-  //                 fontSize: 18,
-  //                 fontWeight: FontWeight.w700,
-  //               ),
-  //             ),
-  //             const SizedBox(height: 10),
-  //             ListView.builder(
-  //               physics: const NeverScrollableScrollPhysics(),
-  //               shrinkWrap: true,
-  //               itemCount: historyList.length,
-  //               itemBuilder: (context, index) {
-  //                 var historyItem = historyList[index];
-  //                 return ListTile(
-  //                   title: Text(historyItem['name']),
-  //                   subtitle: Text(
-  //                       'Status: ${historyItem['status']}\nBMI: ${historyItem['bmi']}'),
-  //                 );
-  //               },
-  //             ),
-  //           ],
-  //         ),
-  //       ),
-  //     ),
-  //   );
-  // }
+  Color _getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'completed':
+        return Colors.green;
+      case 'late':
+        return Colors.red;
+      case 'pending':
+        return Colors.yellow;
+      default:
+        return Colors.grey;
+    }
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -299,7 +150,7 @@ class _ProfileViewState extends State<ProfileView> {
               Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (context) => ThemePage())
+                      builder: (context) => const ThemePage())
               );
             },
             child: Container(
@@ -355,7 +206,7 @@ class _ProfileViewState extends State<ProfileView> {
                           ),
                         ),
                         Text(
-                          "${_goalController.text}", // Update this
+                          "${_goalController.text}",
                           style: TextStyle(
                             color: TColor.gray,
                             fontSize: 12,
@@ -376,7 +227,7 @@ class _ProfileViewState extends State<ProfileView> {
                         Navigator.push(
                             context,
                             MaterialPageRoute(
-                                builder: (context) => EditProfile())
+                                builder: (context) => const EditProfile())
                         );
                         // Navigate to edit profile page
                       },
@@ -393,14 +244,14 @@ class _ProfileViewState extends State<ProfileView> {
                       subtitle: "Height",
                     ),
                   ),
-                  SizedBox(width: 15),
+                  const SizedBox(width: 15),
                   Expanded(
                     child: TitleSubtitleCell(
                       title: txtWeight.text,
                       subtitle: "Weight",
                     ),
                   ),
-                  SizedBox(width: 15),
+                  const SizedBox(width: 15),
                   Expanded(
                     child: TitleSubtitleCell(
                       title: _genderController.text,
@@ -430,8 +281,16 @@ class _ProfileViewState extends State<ProfileView> {
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: TColor.lightGray,
-                      borderRadius: BorderRadius.circular(10),
+                      color: TColor.white,
+                      borderRadius: BorderRadius.circular(15),
+                      boxShadow: [
+                        BoxShadow(
+                          color: TColor.primaryColor2,
+                          blurRadius: 10,
+                          spreadRadius: 2,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -457,7 +316,8 @@ class _ProfileViewState extends State<ProfileView> {
                           'Status: ${historyItem['status']}',
                           style: TextStyle(
                             fontSize: 14,
-                            color: TColor.gray,
+                            color: _getStatusColor(historyItem['status']),
+                            fontWeight: FontWeight.w500
                           ),
                         ),
                         const SizedBox(height: 5),
@@ -473,7 +333,6 @@ class _ProfileViewState extends State<ProfileView> {
                   );
                 },
               ),
-              // Other UI elements
             ],
           ),
         ),
