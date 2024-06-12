@@ -91,18 +91,21 @@ class _CountdownScreenState extends State<CountdownScreen>
   void _markAsCompleted() {
     _firestore.collection('history').doc(widget.historyId).update({
       'status': isExtended ? 'late' : 'completed',
+      'finishTimestamp': FieldValue.serverTimestamp(), // Add finish timestamp
     });
   }
 
   void _markAsPending() {
     _firestore.collection('history').doc(widget.historyId).update({
       'status': 'pending',
+      'finishTimestamp': FieldValue.serverTimestamp(), // Add finish timestamp
     });
   }
 
   void _markAsLate() {
     _firestore.collection('history').doc(widget.historyId).update({
       'status': 'late',
+      'finishTime': FieldValue.serverTimestamp(), // Add finish timestamp
     });
   }
 
@@ -167,7 +170,9 @@ class _CountdownScreenState extends State<CountdownScreen>
         title: Text(
           "Countdown",
           style: TextStyle(
-              color: TColor.black, fontSize: 24, fontWeight: FontWeight.bold),
+              color: TColor.black,
+              fontSize: 24,
+              fontWeight: FontWeight.bold),
         ),
       ),
       body: Column(
@@ -184,7 +189,9 @@ class _CountdownScreenState extends State<CountdownScreen>
                     value: progress,
                     strokeWidth: 6,
                     valueColor: AlwaysStoppedAnimation<Color>(
-                      isExtended ? Colors.red : Colors.purple,
+                      isExtended
+                          ? Colors.red
+                          : Colors.purple,
                     ),
                   ),
                 ),
@@ -239,14 +246,18 @@ class _CountdownScreenState extends State<CountdownScreen>
                       });
                     } else {
                       controller.reverse(
-                          from: controller.value == 0 ? 1.0 : controller.value);
+                          from: controller.value == 0
+                              ? 1.0
+                              : controller.value);
                       setState(() {
                         isPlaying = true;
                       });
                     }
                   },
                   child: RoundButton(
-                    icon: isPlaying == true ? Icons.pause : Icons.play_arrow,
+                    icon: isPlaying == true
+                        ? Icons.pause
+                        : Icons.play_arrow,
                   ),
                 ),
                 GestureDetector(
