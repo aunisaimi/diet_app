@@ -107,7 +107,7 @@ class MealDetailScreen extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: TColor.white,
                         borderRadius: BorderRadius.circular(15),
-                        boxShadow: [
+                        boxShadow: const [
                           BoxShadow(
                             color: Colors.black12,
                             blurRadius: 10,
