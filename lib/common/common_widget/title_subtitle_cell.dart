@@ -18,7 +18,10 @@ class TitleSubtitleCell extends StatelessWidget {
         boxShadow: const [
           BoxShadow(
             color: Colors.black12,
-            blurRadius: 2)
+            blurRadius: 10,
+            spreadRadius: 5,
+            offset: Offset(0, 3),
+          ),
         ],
       ),
       child: Column(
@@ -37,7 +40,7 @@ class TitleSubtitleCell extends StatelessWidget {
               title,
               style: const TextStyle(
                   color: Colors.indigo,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.bold,
                   fontSize: 16),
             ),
           ),
