@@ -1,11 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diet_app/common/color_extension.dart';
+import 'package:diet_app/main.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_ringtone_player/flutter_ringtone_player.dart';
 
 import '../../common/widget/Round_button.dart';
-
 
 class CountdownScreen extends StatefulWidget {
   final String duration;
@@ -14,7 +15,7 @@ class CountdownScreen extends StatefulWidget {
   const CountdownScreen({
     Key? key,
     required this.duration,
-    required this.historyId
+    required this.historyId,
   }) : super(key: key);
 
   @override
@@ -22,47 +23,91 @@ class CountdownScreen extends StatefulWidget {
 }
 
 class _CountdownScreenState extends State<CountdownScreen>
-    with TickerProviderStateMixin{
+    with TickerProviderStateMixin {
   late AnimationController controller;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   bool isPlaying = false;
+  bool isExtended = false; // Flag to check if timer has extended
 
   String get countText {
     Duration count = controller.duration! * controller.value;
-    return controller.isDismissed?
-    '${controller.duration!.inHours}: '
-        '${(controller.duration!.inMinutes % 60).toString().padLeft(2, '0')}:'
-        '${(controller.duration!.inSeconds % 60).toString().padLeft(2, '0')}'
-        :'${count.inHours}: '
-        '${(count.inMinutes % 60).toString().padLeft(2, '0')}:'
-        '${(count.inSeconds % 60).toString().padLeft(2, '0')}';
+    if (isExtended) {
+      int elapsedSeconds = controller.duration!.inSeconds -
+          (controller.duration!.inSeconds * controller.value).round();
+      return Duration(seconds: elapsedSeconds).toString().split('.').first;
+    } else {
+      return controller.isDismissed
+          ? '${controller.duration!.inHours}: '
+          '${(controller.duration!.inMinutes % 60).toString().padLeft(2, '0')}:'
+          '${(controller.duration!.inSeconds % 60).toString().padLeft(2, '0')}'
+          : '${count.inHours}: '
+          '${(count.inMinutes % 60).toString().padLeft(2, '0')}:'
+          '${(count.inSeconds % 60).toString().padLeft(2, '0')}';
+    }
   }
 
   double progress = 1.0;
 
-  void notify() {
-    if(countText == '0:00:00'){
-      final ringtonePlayer = FlutterRingtonePlayer();
-      FlutterRingtonePlayer.playNotification();
-    }// true if countdown go to 0:00:00
+  void _showNotification() {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+    AndroidNotificationDetails(
+      'workout_channel',
+      'Workout Notifications',
+      importance: Importance.max,
+      priority: Priority.high,
+      showWhen: false,
+    );
+
+    const NotificationDetails platformChannelSpecifics =
+    NotificationDetails(android: androidPlatformChannelSpecifics);
+
+    flutterLocalNotificationsPlugin.show(
+      0,
+      'Workout Complete',
+      'Congratulations! You have completed your workout.',
+      platformChannelSpecifics,
+      payload: 'item x',
+    );
   }
 
-  void _markAsCompleted(){
+  void notify() {
+    if (controller.isDismissed && !isExtended) {
+      FlutterRingtonePlayer.playNotification();
+      _showNotification(); // Show notification when the timer hits zero
+
+      setState(() {
+        isExtended = true;
+        _markAsLate(); // Mark the workout as late in Firestore
+        controller = AnimationController(
+          vsync: this,
+          duration: const Duration(hours: 999),
+        );
+        controller.reverse(from: 1.0);
+      });
+    }
+  }
+
+  void _markAsCompleted() {
     _firestore.collection('history').doc(widget.historyId).update({
-      'status': 'completed',
+      'status': isExtended ? 'late' : 'completed',
     });
   }
 
-  void _markAsPending(){
+  void _markAsPending() {
     _firestore.collection('history').doc(widget.historyId).update({
       'status': 'pending',
     });
   }
 
+  void _markAsLate() {
+    _firestore.collection('history').doc(widget.historyId).update({
+      'status': 'late',
+    });
+  }
+
   @override
-  void initState(){
-    // TODO: implement initState
+  void initState() {
     super.initState();
 
     try {
@@ -75,22 +120,15 @@ class _CountdownScreenState extends State<CountdownScreen>
       print('Error parsing duration: $e');
     }
 
-    @override
-    void dispose(){
-      controller.dispose();
-      _markAsPending();
-      super.dispose();
-    }
-
     controller.addListener(() {
-      if (controller.isAnimating){
+      if (controller.isAnimating) {
         setState(() {
           progress = controller.value;
         });
       } else {
         setState(() {
           progress = 1.0;
-          isPlaying = false; //change pause to play after 0
+          isPlaying = false; // change pause to play after 0
         });
       }
       notify();
@@ -98,8 +136,7 @@ class _CountdownScreenState extends State<CountdownScreen>
   }
 
   @override
-  void dispose(){
-    // TODO: implement dispose
+  void dispose() {
     controller.dispose();
     super.dispose();
   }
@@ -125,15 +162,12 @@ class _CountdownScreenState extends State<CountdownScreen>
               decoration: BoxDecoration(
                   color: TColor.lightGray,
                   borderRadius: BorderRadius.circular(10)),
-              child: const Icon(Icons.arrow_back_ios_new_rounded)
-          ),
+              child: const Icon(Icons.arrow_back_ios_new_rounded)),
         ),
         title: Text(
           "Countdown",
           style: TextStyle(
-              color: TColor.black,
-              fontSize: 24,
-              fontWeight: FontWeight.bold),
+              color: TColor.black, fontSize: 24, fontWeight: FontWeight.bold),
         ),
       ),
       body: Column(
@@ -149,11 +183,15 @@ class _CountdownScreenState extends State<CountdownScreen>
                     backgroundColor: Colors.grey.shade400,
                     value: progress,
                     strokeWidth: 6,
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      isExtended ? Colors.red : Colors.purple,
+                    ),
                   ),
                 ),
                 GestureDetector(
-                  onTap: (){
-                    if (controller.isDismissed){ // to restrict user from picking duration while running
+                  onTap: () {
+                    if (controller.isDismissed) {
+                      // to restrict user from picking duration while running
                       showModalBottomSheet(
                         context: context,
                         builder: (context) => Container(
@@ -185,42 +223,41 @@ class _CountdownScreenState extends State<CountdownScreen>
             ),
           ),
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 20,),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10,
+              vertical: 20,
+            ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 GestureDetector(
                   onTap: () {
-                    if(controller.isAnimating){
+                    if (controller.isAnimating) {
                       controller.stop();
                       setState(() {
                         isPlaying = false;
                       });
-                    }
-                    else {
+                    } else {
                       controller.reverse(
-                          from: controller.value == 0? 1.0
-                              : controller.value);
+                          from: controller.value == 0 ? 1.0 : controller.value);
                       setState(() {
                         isPlaying = true;
                       });
                     }
                   },
                   child: RoundButton(
-                    icon: isPlaying == true
-                        ? Icons.pause
-                        : Icons.play_arrow,
+                    icon: isPlaying == true ? Icons.pause : Icons.play_arrow,
                   ),
                 ),
                 GestureDetector(
-                  onTap: (){
+                  onTap: () {
                     controller.reset();
                     setState(() {
                       isPlaying = false;
                     });
                   },
                   child: ElevatedButton(
-                    //icon: Icons.stop,
+                    // icon: Icons.stop,
                     onPressed: () {
                       _markAsCompleted();
                       Navigator.pop(context);
