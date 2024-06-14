@@ -22,9 +22,10 @@ class _CompleteProfileViewState extends State<CompleteProfileView> {
   TextEditingController txtWeight = TextEditingController();
   TextEditingController txtHeight = TextEditingController();
   String? selectedGender;
+  String? selectedCareer;
   String? ageErrorMessage;
 
-  Future<void> updateUserProfile() async {
+  Future<void> updateUserProfile(double initialCalories) async {
     try {
       User? user = _auth.currentUser;
       if (user != null) {
@@ -38,6 +39,8 @@ class _CompleteProfileViewState extends State<CompleteProfileView> {
           'weight': txtWeight.text,
           'height': txtHeight.text,
           'gender': selectedGender,
+          'career': selectedCareer,
+          'initialCalories': initialCalories,
         });
         print('User profile updated successfully!');
       } else {
@@ -59,6 +62,27 @@ class _CompleteProfileViewState extends State<CompleteProfileView> {
     return age;
   }
 
+  double getInitialCalories(String gender, String career, int age) {
+    if (career == 'Teenager') {
+      return age <= 19 ? 1600 : 2400;
+    } else if (career == 'Athlete Teenager') {
+      return 5000;
+    } else if (career == 'Office') {
+      if (gender == 'Male') {
+        return 2050; // Average between 2000 and 2100
+      } else {
+        return 1700; // Average between 1600 and 1800
+      }
+    } else if (career == 'Strenuous') {
+      if (gender == 'Male') {
+        return 3000; // Average between 2500 and 3500
+      } else {
+        return 2400; // Average between 2000 and 2800
+      }
+    }
+    return 0.0;
+  }
+
   void validateAndProceed(){
     int age = calculateAge(txtDate.text);
     if(age < 16){
@@ -69,7 +93,9 @@ class _CompleteProfileViewState extends State<CompleteProfileView> {
       setState(() {
         ageErrorMessage = null;
       });
-      updateUserProfile();
+      double initialCalories = getInitialCalories(
+          selectedGender!, selectedCareer!, age);
+      updateUserProfile(initialCalories);
       Navigator.push(
           context,
           MaterialPageRoute(
@@ -174,6 +200,65 @@ class _CompleteProfileViewState extends State<CompleteProfileView> {
                         ),
                       ),
                       SizedBox(height: media.width * 0.04),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: TColor.lightGray,
+                          borderRadius: BorderRadius.circular(15),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              alignment: Alignment.center,
+                              width: 50,
+                              height: 50,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 15,
+                              ),
+                              child: Image.asset(
+                                "assets/img/career.png", // Add an appropriate image
+                                width: 20,
+                                height: 20,
+                                fit: BoxFit.contain,
+                                color: TColor.gray,
+                              ),
+                            ),
+                            Expanded(
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<String>(
+                                  value: selectedCareer,
+                                  items: ["Office", "Strenuous", "Teenager", "Athlete Teenager"].map((name) {
+                                    return DropdownMenuItem<String>(
+                                      value: name,
+                                      child: Text(
+                                        name,
+                                        style: TextStyle(
+                                          color: TColor.gray,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                  onChanged: (value) {
+                                    setState(() {
+                                      selectedCareer = value;
+                                    });
+                                  },
+                                  isExpanded: true,
+                                  hint: Text(
+                                    "Choose Career",
+                                    style: TextStyle(
+                                      color: TColor.gray,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                        ),
+                      ),
+                      SizedBox(height: media.width * 0.04),
                       RoundTextField(
                         controller: txtDate,
                         hitText: "Date of Birth (MM/dd/yyyy)",
@@ -191,9 +276,7 @@ class _CompleteProfileViewState extends State<CompleteProfileView> {
                             ),
                           ),
                         ),
-
                       SizedBox(height: media.width * 0.04),
-
                       Row(
                         children: [
                           Expanded(
@@ -262,13 +345,6 @@ class _CompleteProfileViewState extends State<CompleteProfileView> {
                         title: "Next >",
                         onPressed: () {
                           validateAndProceed();
-                          // updateUserProfile(); // Call function to update user profile
-                          // Navigator.push(
-                          //   context,
-                          //   MaterialPageRoute(
-                          //     builder: (context) => const WhatYourGoalView(),
-                          //   ),
-                          // );
                         },
                       ),
                     ],
