@@ -1,10 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diet_app/Helpers/preferences_helper.dart';
 import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/screen/home/home_view.dart';
 import 'package:diet_app/screen/main_tab/main_tab_view.dart';
 import 'package:diet_app/screen/meal_planner/dietandfitness/MealPlanner.dart';
-import 'package:diet_app/screen/meal_planner/dietandfitness/diet.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,24 +14,25 @@ import 'dart:convert';
 import '../../../model/diet.dart';
 
 class MealPlanView extends StatefulWidget {
-  final int remainingCalories;
   final ValueChanged<int> onCaloriesUpdated;
   const MealPlanView({
     super.key,
-    required this.remainingCalories,
-    required this.onCaloriesUpdated});
+    required this.onCaloriesUpdated,
+  });
 
   @override
   State<MealPlanView> createState() => _MealPlanViewState();
 }
 
 class _MealPlanViewState extends State<MealPlanView> {
+  final FirebaseAuth _auth = FirebaseAuth.instance;
   int isActiveTab = 0;
   String searchText = '';
   String selectedCategory = 'Breakfast';
   TextEditingController searchController = TextEditingController();
   List<Diet> diets = [];
-  late int _remainingCalories;
+  int? _remainingCalories;
+  bool _isLoading = true; // To control the loading state
 
   Map<String, Map<String, dynamic>> selectedMeals = {
     "Breakfast": {},
@@ -170,9 +172,7 @@ class _MealPlanViewState extends State<MealPlanView> {
   @override
   void initState() {
     super.initState();
-    _loadData();
-    _remainingCalories = widget.remainingCalories;
-    _saveRemainingCalories(_remainingCalories);
+    _loadInitialCalories();
   }
 
   void _saveRemainingCalories(int calories) async {
@@ -191,10 +191,26 @@ class _MealPlanViewState extends State<MealPlanView> {
     await PreferencesHelper.saveSelectedMeals(selectedMeals);
   }
 
+  Future<void> _loadInitialCalories() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      int initialCalories = (userDoc.get('initialCalories') as num).toInt();
+
+      setState(() {
+        _remainingCalories = initialCalories;
+        _isLoading = false; // Update loading state
+      });
+
+      _saveRemainingCalories(_remainingCalories!);
+      await _loadData();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     var media = MediaQuery.of(context).size;
-    int remainingCalories = widget.remainingCalories - _totalCalories;
+    int remainingCalories = (_remainingCalories ?? 0) - _totalCalories;
 
     return Scaffold(
       appBar: AppBar(
@@ -209,7 +225,6 @@ class _MealPlanViewState extends State<MealPlanView> {
             Icons.arrow_back_ios_new_rounded,
           ),
         ),
-
         title: Text(
           "Meal Plan",
           style: TextStyle(
@@ -238,7 +253,9 @@ class _MealPlanViewState extends State<MealPlanView> {
           ),
         ],
       ),
-      body: Column(
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : Column(
         children: [
           Container(
             decoration:
@@ -449,7 +466,8 @@ class _MealPlanViewState extends State<MealPlanView> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (context) => MealPlanner(dietType:  diets.map(
+                        builder: (context) => MealPlanner(
+                            dietType:  diets.map(
                                 (diet) => diet.dietType).toList())
                     )
                 );
