@@ -7,6 +7,7 @@ import 'package:diet_app/screen/Theme/Apparance.dart';
 import 'package:diet_app/screen/profile/edit_profile.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart'; // Import the intl package
 
 class ProfileView extends StatefulWidget {
   ProfileView({Key? key}) : super(key: key);
@@ -95,14 +96,22 @@ class _ProfileViewState extends State<ProfileView> {
         final status = data.containsKey('status') ? data['status'] : 'Unknown Status';
         final userDetails = data.containsKey('userDetails') ? data['userDetails'] : {};
         final bmi = userDetails.containsKey('bmi') ? userDetails['bmi'] : 'Unknown BMI';
+        final finishTime = data.containsKey('finishTimestamp') && data['finishTimestamp'] is Timestamp
+            ? (data['finishTimestamp'] as Timestamp).toDate()
+            : null;
+        final startTime = data.containsKey('startTimestamp') && data['startTimestamp'] is Timestamp
+            ? (data['startTimestamp'] as Timestamp).toDate()
+            : null;
 
-        print("Exercise: $name, Title: $title, Status: $status, BMI: $bmi"); // Debugging information
+        print("Exercise: $name, Title: $title, Status: $status, BMI: $bmi, Start Time: $startTime, Finish Time: $finishTime"); // Debugging information
 
         return {
           'name': name,
           'title': title,
           'status': status,
           'bmi': bmi,
+          'startTime': startTime,
+          'finishTime': finishTime,
         };
       }).toList();
 
@@ -127,7 +136,7 @@ class _ProfileViewState extends State<ProfileView> {
         return Colors.grey;
     }
   }
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -277,6 +286,13 @@ class _ProfileViewState extends State<ProfileView> {
                 itemCount: historyList.length,
                 itemBuilder: (context, index) {
                   var historyItem = historyList[index];
+                  final startTime = historyItem['startTime'] != null
+                      ? DateFormat('hh:mm a').format(historyItem['startTime'])
+                      : 'Unknown';
+                  final finishTime = historyItem['finishTime'] != null
+                      ? DateFormat('hh:mm a').format(historyItem['finishTime'])
+                      : 'Unknown';
+
                   return Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
                     padding: const EdgeInsets.all(12),
@@ -317,12 +333,20 @@ class _ProfileViewState extends State<ProfileView> {
                           style: TextStyle(
                             fontSize: 14,
                             color: _getStatusColor(historyItem['status']),
-                            fontWeight: FontWeight.w500
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                         const SizedBox(height: 5),
                         Text(
                           'BMI: ${historyItem['bmi']}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: TColor.gray,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          'Time: $startTime - $finishTime',
                           style: TextStyle(
                             fontSize: 14,
                             color: TColor.gray,
@@ -339,5 +363,4 @@ class _ProfileViewState extends State<ProfileView> {
       ),
     );
   }
-
 }
