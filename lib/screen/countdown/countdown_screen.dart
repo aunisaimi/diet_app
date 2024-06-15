@@ -29,6 +29,7 @@ class _CountdownScreenState extends State<CountdownScreen>
 
   bool isPlaying = false;
   bool isExtended = false; // Flag to check if timer has extended
+  bool hasStarted = false; // Flag to check if the timer has started
 
   String get countText {
     Duration count = controller.duration! * controller.value;
@@ -107,6 +108,15 @@ class _CountdownScreenState extends State<CountdownScreen>
       'status': 'late',
       'finishTime': FieldValue.serverTimestamp(), // Add finish timestamp
     });
+  }
+
+  void _markAsStarted() {
+    if (!hasStarted) {
+      _firestore.collection('history').doc(widget.historyId).update({
+        'startTimestamp': FieldValue.serverTimestamp(), // Add start timestamp
+      });
+      hasStarted = true;
+    }
   }
 
   @override
@@ -245,6 +255,7 @@ class _CountdownScreenState extends State<CountdownScreen>
                         isPlaying = false;
                       });
                     } else {
+                      _markAsStarted(); // Mark the start time when starting the timer
                       controller.reverse(
                           from: controller.value == 0
                               ? 1.0
