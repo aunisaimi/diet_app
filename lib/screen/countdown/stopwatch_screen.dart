@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:diet_app/common/color_extension.dart';
 import 'package:flutter/material.dart';
 
 class StopwatchScreen extends StatefulWidget {
@@ -33,12 +32,14 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
   void _markAsCompleted() {
     _firestore.collection('history').doc(widget.historyId).update({
       'status': 'completed',
+      'finishTimestamp': FieldValue.serverTimestamp(),
     });
   }
 
   void _markAsPending() {
     _firestore.collection('history').doc(widget.historyId).update({
       'status': 'pending',
+      'startTimestamp': FieldValue.serverTimestamp(),
     });
   }
 
@@ -47,6 +48,9 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       setState(() {});
     });
+
+    // Update startTimestamp when stopwatch starts
+    _markAsPending();
   }
 
   void _stopStopwatch() {
@@ -75,7 +79,7 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: TColor.white,
+        title: Text(widget.exerciseName),
         centerTitle: true,
         elevation: 0,
         leading: InkWell(
@@ -89,7 +93,7 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
             width: 40,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: TColor.lightGray,
+              color: Colors.grey[300],
               borderRadius: BorderRadius.circular(10),
             ),
             child: const Icon(Icons.close),
@@ -107,14 +111,8 @@ class _StopwatchScreenState extends State<StopwatchScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               ElevatedButton(
-                onPressed: _stopwatch.isRunning
-                    ? _stopStopwatch
-                    : _startStopwatch,
-                child: Text(
-                  _stopwatch.isRunning
-                      ? 'Stop'
-                      : 'Start',
-                ),
+                onPressed: _stopwatch.isRunning ? _stopStopwatch : _startStopwatch,
+                child: Text(_stopwatch.isRunning ? 'Stop' : 'Start'),
               ),
               const SizedBox(width: 10),
               ElevatedButton(
