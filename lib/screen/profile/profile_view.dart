@@ -103,7 +103,12 @@ class _ProfileViewState extends State<ProfileView> {
             ? (data['startTimestamp'] as Timestamp).toDate()
             : null;
 
-        print("Exercise: $name, Title: $title, Status: $status, BMI: $bmi, Start Time: $startTime, Finish Time: $finishTime"); // Debugging information
+        int? elapsedTime;
+        if (startTime != null && finishTime != null) {
+          elapsedTime = finishTime.difference(startTime).inSeconds;
+        }
+
+        print("Exercise: $name, Title: $title, Status: $status, BMI: $bmi, Start Time: $startTime, Finish Time: $finishTime, Elapsed Time: $elapsedTime"); // Debugging information
 
         return {
           'name': name,
@@ -112,6 +117,7 @@ class _ProfileViewState extends State<ProfileView> {
           'bmi': bmi,
           'startTime': startTime,
           'finishTime': finishTime,
+          'elapsedTime': elapsedTime, // Store elapsed time in seconds
         };
       }).toList();
 
@@ -122,6 +128,13 @@ class _ProfileViewState extends State<ProfileView> {
     } catch (e) {
       print("Error fetching history: $e");
     }
+  }
+
+  String formatElapsedTime(int? seconds) {
+    if (seconds == null) {
+      return 'Unknown';
+    }
+    return '${seconds}s';
   }
 
   Color _getStatusColor(String status) {
@@ -153,28 +166,6 @@ class _ProfileViewState extends State<ProfileView> {
             fontWeight: FontWeight.w700,
           ),
         ),
-        actions: [
-          InkWell(
-            onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const ThemePage())
-              );
-            },
-            child: Container(
-              margin: const EdgeInsets.all(8),
-              height: 40,
-              width: 40,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: TColor.lightGray,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(Icons.more_horiz_rounded),
-            ),
-          )
-        ],
       ),
       backgroundColor: TColor.white,
       body: SingleChildScrollView(
@@ -292,6 +283,7 @@ class _ProfileViewState extends State<ProfileView> {
                   final finishTime = historyItem['finishTime'] != null
                       ? DateFormat('hh:mm a').format(historyItem['finishTime'])
                       : 'Unknown';
+                  final elapsedTime = formatElapsedTime(historyItem['elapsedTime']);
 
                   return Container(
                     margin: const EdgeInsets.symmetric(vertical: 8),
@@ -347,6 +339,14 @@ class _ProfileViewState extends State<ProfileView> {
                         const SizedBox(height: 5),
                         Text(
                           'Time: $startTime - $finishTime',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: TColor.gray,
+                          ),
+                        ),
+                        const SizedBox(height: 5),
+                        Text(
+                          'Elapsed Time: $elapsedTime',
                           style: TextStyle(
                             fontSize: 14,
                             color: TColor.gray,
