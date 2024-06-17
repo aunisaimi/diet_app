@@ -1,6 +1,6 @@
 
 import 'package:diet_app/model/diet.dart';
-import 'package:diet_app/screen/meal_planner/dietandfitness/MealPlanner.dart';
+import 'package:diet_app/screen/meal_planner/dietandfitness/DietPlanner.dart';
 import 'package:diet_app/screen/meal_planner/dietandfitness/diet.dart';
 import 'package:diet_app/screen/meal_planner/dietandfitness/meal_plan_view.dart';
 import 'package:diet_app/screen/water_intake/water_intake.dart';
