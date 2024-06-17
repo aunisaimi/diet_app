@@ -47,7 +47,7 @@ class SelectView extends StatelessWidget {
                     context,
                     MaterialPageRoute(
                       builder: (context) =>  MealPlanView(
-                        remainingCalories: 2500,
+                        //remainingCalories: 2500,
                         onCaloriesUpdated: (int value) {  },),
                     ),
                   );
