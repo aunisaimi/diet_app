@@ -23,19 +23,18 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-
   tz.initializeTimeZones();
 
   const AndroidInitializationSettings initializationSettingsAndroid =
   AndroidInitializationSettings('logo');
   final InitializationSettings initializationSettings =
-  const InitializationSettings(android: initializationSettingsAndroid);
+  InitializationSettings(android: initializationSettingsAndroid);
 
   await flutterLocalNotificationsPlugin.initialize(initializationSettings);
 
   const AndroidNotificationChannel channel = AndroidNotificationChannel(
-    'workout_channel', // id - this can be any unique string
-    'Workout Notifications',
+    'workout_channel', // id
+    'Workout Notifications', // name
     importance: Importance.high,
   );
 
@@ -50,8 +49,6 @@ void main() async {
     ),
   );
 }
-
-
 
 class MyApp extends StatelessWidget {
   const MyApp({Key? key});
@@ -96,7 +93,6 @@ class MyApp extends StatelessWidget {
               brightness: Brightness.dark,
             ),
             home: snapshot.data,
-            //home: Diet(),
           );
         }
       },
@@ -105,7 +101,8 @@ class MyApp extends StatelessWidget {
 }
 
 Future<void> scheduleNotification(String name, DateTime date) async {
-  AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
+  AndroidNotificationDetails androidPlatformChannelSpecifics =
+  AndroidNotificationDetails(
     'workout_channel',
     'Workout Notifications',
     importance: Importance.max,
@@ -113,8 +110,8 @@ Future<void> scheduleNotification(String name, DateTime date) async {
     showWhen: false,
   );
 
-  NotificationDetails platformChannelSpecifics = NotificationDetails(
-      android: androidPlatformChannelSpecifics);
+  NotificationDetails platformChannelSpecifics =
+  NotificationDetails(android: androidPlatformChannelSpecifics);
 
   await flutterLocalNotificationsPlugin.zonedSchedule(
     0,
