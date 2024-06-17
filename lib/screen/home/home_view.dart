@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diet_app/Helpers/preferences_helper.dart';
 import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
-import 'package:diet_app/common/common_widget/workout_row.dart';
 import 'package:diet_app/screen/bmi/bmiCalculator.dart';
 import 'package:diet_app/screen/meal_planner/dietandfitness/meal_plan_view.dart';
 import 'package:diet_app/screen/on_boarding/started_view.dart';
@@ -17,8 +16,6 @@ import 'package:simple_animation_progress_bar/simple_animation_progress_bar.dart
 import 'package:simple_circular_progress_bar/simple_circular_progress_bar.dart';
 
 import '../../database/auth_service.dart';
-import 'activity_tracker_view.dart';
-import 'finished_workout_view.dart';
 
 
 class HomeView extends StatefulWidget {
@@ -46,6 +43,7 @@ class _HomeViewState extends State<HomeView> {
   TextEditingController txtDate = TextEditingController();
   TextEditingController txtWeight = TextEditingController();
   TextEditingController txtHeight = TextEditingController();
+  TextEditingController initialCalories = TextEditingController();
   TextEditingController _lastnameController = TextEditingController();
   TextEditingController _firstnameController = TextEditingController();
   TextEditingController _emailController = TextEditingController();
@@ -53,6 +51,7 @@ class _HomeViewState extends State<HomeView> {
   double? bmi = 0;
   double? bmiPercentage;
   String? bmiMessage;
+  bool isLoading = true;
   String bmiStatus = "";
 
 
@@ -92,6 +91,8 @@ class _HomeViewState extends State<HomeView> {
     _progressNotifier = ValueNotifier(_calculateProgress(widget.remainingCalories));
     _loadData();
     _loadRemainingCalories();
+    fetchLatestWorkout();
+    fetchRemainingCalories();
   }
 
   Future<void> _loadRemainingCalories() async {
@@ -108,6 +109,34 @@ class _HomeViewState extends State<HomeView> {
         _remainingCalories = prefs.getInt('remainingCalories') ?? widget.remainingCalories;
         _progressNotifier.value = _calculateProgress(_remainingCalories);
       });
+    }
+  }
+
+  Future<void> fetchRemainingCalories() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      int initialCalories = (userDoc.get('initialCalories') as num).toInt();
+
+      setState(() {
+        _remainingCalories = initialCalories;
+        _progressNotifier.value = _calculateProgress(_remainingCalories!);
+        isLoading = false;
+      });
+
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? lastUpdateDate = prefs.getString('lastUpdateDate');
+      String currentDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
+
+      if (lastUpdateDate == null || lastUpdateDate != currentDate) {
+        await _updateRemainingCalories(_remainingCalories!);
+        await prefs.setString('lastUpdateDate', currentDate);
+      } else {
+        setState(() {
+          _remainingCalories = prefs.getInt('remainingCalories') ?? _remainingCalories!;
+          _progressNotifier.value = _calculateProgress(_remainingCalories!);
+        });
+      }
     }
   }
 
@@ -168,12 +197,16 @@ class _HomeViewState extends State<HomeView> {
           bmi = userDoc['bmi'];
           bmiPercentage = calculateBMIPercentage(bmi!);
           bmiStatus = determineBMIStatus(bmi!);
+          initialCalories = userDoc['initialCalories'];
+          _remainingCalories = userDoc['remainingCalories'] ?? widget.remainingCalories;
+          _progressNotifier.value = _calculateProgress(_remainingCalories);
         });
         print("This is the current user email: ${userDoc['email']}");
         print("This is the current user name: ${userDoc['fname']}");
         print("This is the current user lname: ${userDoc['lname']}");
         print("This is the current user gender: ${userDoc['gender']}");
         print("This is the current user bmi: ${userDoc['bmi']}");
+        print("This is the current calorie: ${userDoc['initialCalories']}");
 
       } else {
         print("Data not exist");
@@ -182,9 +215,7 @@ class _HomeViewState extends State<HomeView> {
       print("Error, please check: ${e}");
     }
   }
-
-
-
+  
   double calculateBMIPercentage(double bmi){
     const double minNormalBMI = 18.5;
     const double maxNormalBMI  = 24.9;
@@ -220,6 +251,36 @@ class _HomeViewState extends State<HomeView> {
     }
   }
 
+  Future<void> fetchLatestWorkout() async {
+    try {
+      var userId = widget.user?.uid;
+      if(userId != null){
+        var snapshot = await FirebaseFirestore.instance
+            .collection('history')
+            .where('userId',isEqualTo: userId)
+            .orderBy('timestamp', descending: true)
+            .limit(1)
+            .get();
+
+        if(snapshot.docs.isNotEmpty){
+          setState(() {
+            lastWorkoutArr = snapshot.docs.map((doc) => doc.data()).toList();
+            isLoading = false;
+          });
+        } else {
+          setState(() {
+            isLoading = false;
+          });
+        }
+      }
+    } catch (e,printStack){
+      print('Error fetching latest workout: $e');
+      print(printStack);
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   void dispose(){
@@ -508,45 +569,45 @@ class _HomeViewState extends State<HomeView> {
 
                 SizedBox(height: media.width * 0.05),
 
-                Container(
-                  padding:
-                  const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
-                  decoration: BoxDecoration(
-                    color: TColor.primaryColor2.withOpacity(0.3),
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        "Today Target",
-                        style: TextStyle(
-                            color: TColor.black,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700),
-                      ),
-                      SizedBox(
-                        width: 70,
-                        height: 25,
-                        child: RoundButton(
-                          title: "Check",
-                          type: RoundButtonType.bgGradient,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w400,
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                const ActivityTrackerView(),
-                              ),
-                            );
-                          },
-                        ),
-                      )
-                    ],
-                  ),
-                ),
+                // Container(
+                //   padding:
+                //   const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
+                //   decoration: BoxDecoration(
+                //     color: TColor.primaryColor2.withOpacity(0.3),
+                //     borderRadius: BorderRadius.circular(15),
+                //   ),
+                //   child: Row(
+                //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //     children: [
+                //       Text(
+                //         "Today Target",
+                //         style: TextStyle(
+                //             color: TColor.black,
+                //             fontSize: 14,
+                //             fontWeight: FontWeight.w700),
+                //       ),
+                //       SizedBox(
+                //         width: 70,
+                //         height: 25,
+                //         child: RoundButton(
+                //           title: "Check",
+                //           type: RoundButtonType.bgGradient,
+                //           fontSize: 12,
+                //           fontWeight: FontWeight.w400,
+                //           onPressed: () {
+                //             Navigator.push(
+                //               context,
+                //               MaterialPageRoute(
+                //                 builder: (context) =>
+                //                 const ActivityTrackerView(),
+                //               ),
+                //             );
+                //           },
+                //         ),
+                //       )
+                //     ],
+                //   ),
+                // ),
 
                 SizedBox(height: media.width * 0.05),
 
@@ -1001,7 +1062,8 @@ class _HomeViewState extends State<HomeView> {
                                             0, 0, bounds.width, bounds.height));
                                       },
                                       child: Text(
-                                        "$_remainingCalories kCal",
+                                        "${_remainingCalories ?? 0} kCal",
+                                        //"$_remainingCalories kCal",
                                         //"760 kCal",
                                         style: TextStyle(
                                             color: TColor.white, //.withOpacity(0.7),
@@ -1028,7 +1090,8 @@ class _HomeViewState extends State<HomeView> {
                                               ),
                                               child: FittedBox(
                                                 child: Text(
-                                                  "$_remainingCalories kCal\nleft",
+                                                  "${_remainingCalories ?? 0} kCal\nleft",
+                                                  //"$_remainingCalories kCal\nleft",
                                                   textAlign: TextAlign.center,
                                                   style: TextStyle(
                                                     color: TColor.white,
@@ -1060,7 +1123,7 @@ class _HomeViewState extends State<HomeView> {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => MealPlanView(
-                                        remainingCalories: _remainingCalories,
+                                       // remainingCalories: _remainingCalories,
                                         onCaloriesUpdated: (updatedCalories) {
                                           _updateRemainingCalories(updatedCalories);
                                         },
@@ -1233,54 +1296,54 @@ class _HomeViewState extends State<HomeView> {
                           ),
                         ),
                       ),
-                    )),
-                SizedBox(
-                  height: media.width * 0.05,
+                    )
+
                 ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      "Latest Workout",
-                      style: TextStyle(
-                          color: TColor.black,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w700),
-                    ),
-                    TextButton(
-                      onPressed: () {},
-                      child: Text(
-                        "See More",
-                        style: TextStyle(
-                            color: TColor.gray,
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                  ],
-                ),
-                ListView.builder(
-                    padding: EdgeInsets.zero,
-                    physics: const NeverScrollableScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: lastWorkoutArr.length,
-                    itemBuilder: (context, index) {
-                      var wObj = lastWorkoutArr[index] as Map? ?? {};
-                      return InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                const FinishedWorkoutView(),
-                              ),
-                            );
-                          },
-                          child: WorkoutRow(wObj: wObj));
-                    }),
-                SizedBox(
-                  height: media.width * 0.1,
-                ),
+                SizedBox(height: media.width * 0.05),
+
+                // Row(
+                //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //   children: [
+                //     Text(
+                //       "Latest Workout",
+                //       style: TextStyle(
+                //           color: TColor.black,
+                //           fontSize: 16,
+                //           fontWeight: FontWeight.w700),
+                //     ),
+                //     TextButton(
+                //       onPressed: () {},
+                //       child: Text(
+                //         "See More",
+                //         style: TextStyle(
+                //             color: TColor.gray,
+                //             fontSize: 14,
+                //             fontWeight: FontWeight.w700),
+                //       ),
+                //     ),
+                //   ],
+                // ),
+                // ListView.builder(
+                //     padding: EdgeInsets.zero,
+                //     physics: const NeverScrollableScrollPhysics(),
+                //     shrinkWrap: true,
+                //     itemCount: lastWorkoutArr.length,
+                //     itemBuilder: (context, index) {
+                //       var wObj = lastWorkoutArr[index] as Map? ?? {};
+                //       return InkWell(
+                //           onTap: () {
+                //             Navigator.push(
+                //               context,
+                //               MaterialPageRoute(
+                //                 builder: (context) =>
+                //                 const FinishedWorkoutView(),
+                //               ),
+                //             );
+                //           },
+                //           child: WorkoutRow(wObj: wObj));
+                //     }),
+
+                SizedBox(height: media.width * 0.1),
               ],
             ),
           ),
