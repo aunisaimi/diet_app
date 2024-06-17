@@ -25,20 +25,20 @@ class _SettingsPageState extends State<SettingsPage> {
         ),
         centerTitle: true,
         elevation: 0,
-        leading: InkWell(
-          onTap: () => Navigator.pop(context),
-          child: Container(
-            margin: const EdgeInsets.all(8),
-            height: 40,
-            width: 40,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: TColor.lightGray,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.arrow_back_ios_new_rounded),
-          ),
-        ),
+        // leading: InkWell(
+        //   onTap: () {Navigator.pop(context);},
+        //   child: Container(
+        //     margin: const EdgeInsets.all(8),
+        //     height: 40,
+        //     width: 40,
+        //     alignment: Alignment.center,
+        //     decoration: BoxDecoration(
+        //       color: TColor.lightGray,
+        //       borderRadius: BorderRadius.circular(10),
+        //     ),
+        //     child: const Icon(Icons.arrow_back_ios_new_rounded),
+        //   ),
+        // ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
