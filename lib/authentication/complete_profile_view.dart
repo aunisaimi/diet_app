@@ -215,7 +215,7 @@ class _CompleteProfileViewState extends State<CompleteProfileView> {
                                 horizontal: 15,
                               ),
                               child: Image.asset(
-                                "assets/img/career.png", // Add an appropriate image
+                                "assets/img/p_achi.png",
                                 width: 20,
                                 height: 20,
                                 fit: BoxFit.contain,
