@@ -2,19 +2,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:diet_app/Helpers/preferences_helper.dart';
 import 'package:diet_app/common/RoundButton.dart';
 import 'package:diet_app/common/color_extension.dart';
-import 'package:diet_app/screen/home/home_view.dart';
-import 'package:diet_app/screen/main_tab/main_tab_view.dart';
-import 'package:diet_app/screen/meal_planner/dietandfitness/MealPlanner.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 
 import '../../../model/diet.dart';
 
 class MealPlanView extends StatefulWidget {
   final ValueChanged<int> onCaloriesUpdated;
+
   const MealPlanView({
     super.key,
     required this.onCaloriesUpdated,
@@ -233,25 +230,25 @@ class _MealPlanViewState extends State<MealPlanView> {
             fontWeight: FontWeight.w600,
           ),
         ),
-        actions: [
-          IconButton(
-            onPressed: () {
-              widget.onCaloriesUpdated(remainingCalories);
-              SharedPreferences.getInstance().then((prefs) {
-                prefs.setInt('remainingCalories', remainingCalories);
-                prefs.setString(
-                    'lastUpdateDate',
-                    DateFormat('yyyy-MM-dd').format(DateTime.now()));
-              });
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Remaining calories saved.'),
-                ),
-              );
-            },
-            icon: const Icon(Icons.save),
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     onPressed: () {
+        //       widget.onCaloriesUpdated(remainingCalories);
+        //       SharedPreferences.getInstance().then((prefs) {
+        //         prefs.setInt('remainingCalories', remainingCalories);
+        //         prefs.setString(
+        //             'lastUpdateDate',
+        //             DateFormat('yyyy-MM-dd').format(DateTime.now()));
+        //       });
+        //       ScaffoldMessenger.of(context).showSnackBar(
+        //         const SnackBar(
+        //           content: Text('Remaining calories saved.'),
+        //         ),
+        //       );
+        //     },
+        //     icon: const Icon(Icons.save),
+        //   ),
+        // ],
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
@@ -459,21 +456,34 @@ class _MealPlanViewState extends State<MealPlanView> {
           ),
           Padding(
             padding: const EdgeInsets.all(16.0),
-            child: RoundButton(
-              title: "Go to Diet Screen",
-              type: RoundButtonType.bgSGradient,
-              onPressed: (){
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => MealPlanner(
-                            dietType:  diets.map(
-                                (diet) => diet.dietType).toList())
-                    )
+            child: ElevatedButton(
+              onPressed: () {
+                widget.onCaloriesUpdated(remainingCalories);
+                SharedPreferences.getInstance().then((prefs) {
+                  prefs.setInt('remainingCalories', remainingCalories);
+                  prefs.setString(
+                      'lastUpdateDate',
+                      DateFormat('yyyy-MM-dd').format(DateTime.now()));
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Remaining calories saved.'),
+                  ),
                 );
               },
+              child: Text("Save"),
+              style: ElevatedButton.styleFrom(
+                primary: TColor.primaryColor1,
+                onPrimary: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                elevation: 1,
+                textStyle: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-          )
+          ),
         ],
       ),
     );
