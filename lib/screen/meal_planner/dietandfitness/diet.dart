@@ -2,7 +2,7 @@
 // import 'package:diet_app/common/color_extension.dart';
 // import 'package:diet_app/model/diet.dart';
 // import 'package:diet_app/model/meal.dart';
-// import 'package:diet_app/screen/meal_planner/dietandfitness/MealPlanner.dart';
+// import 'package:diet_app/screen/meal_planner/dietandfitness/DietPlanner.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
 // import 'package:flutter/material.dart';
 //
