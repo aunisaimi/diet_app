@@ -32,7 +32,7 @@ class _ProfileViewState extends State<ProfileView> {
   TextEditingController _genderController = TextEditingController();
   TextEditingController _goalController = TextEditingController();
   String profilePicture = '';
-  String selectedDiet = '';
+  String selectedDietId = '';
 
   List<Map<String, dynamic>> historyList = []; // State variable to store history data
 
@@ -65,7 +65,7 @@ class _ProfileViewState extends State<ProfileView> {
           profilePicture = userDoc['profilePicture'];
           txtHeight.text = userDoc['height'].toString();
           txtWeight.text = userDoc['weight'].toString();
-          selectedDiet = userDoc['selectedDiet'];
+          selectedDietId = userDoc['selectedDietName'];
         });
         print("This is the current user email: ${userDoc['email']}");
         print("This is the current user name: ${userDoc['fname']}");
@@ -264,7 +264,7 @@ class _ProfileViewState extends State<ProfileView> {
               ),
               const SizedBox(height: 15),
               TitleSubtitleCell(
-                title: selectedDiet,
+                title: selectedDietId,
                 subtitle: "Selected Diet",
               ),
               // User history information
@@ -337,7 +337,9 @@ class _ProfileViewState extends State<ProfileView> {
                         ),
                         const SizedBox(height: 5),
                         Text(
-                          'BMI: ${historyItem['bmi']}',
+                          'BMI: ${historyItem['bmi'] != null
+                              ? double.parse(historyItem['bmi'].toStringAsFixed(2))
+                              : 'Unknown'}',
                           style: TextStyle(
                             fontSize: 14,
                             color: TColor.gray,

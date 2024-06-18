@@ -86,12 +86,14 @@ class _HomeViewState extends State<HomeView> {
     print('${_emailController}');
     print('${_firstnameController}');
     print('${_lastnameController}');
-    fetchUserData();
+    fetchUserData().then((_){
+      _loadRemainingCalories();
+      fetchLatestWorkout();
+    });
     _remainingCalories = widget.remainingCalories;
     _progressNotifier = ValueNotifier(_calculateProgress(widget.remainingCalories));
     _loadData();
-    _loadRemainingCalories();
-    fetchLatestWorkout();
+
     fetchRemainingCalories();
   }
 
@@ -198,7 +200,7 @@ class _HomeViewState extends State<HomeView> {
           bmiPercentage = calculateBMIPercentage(bmi!);
           bmiStatus = determineBMIStatus(bmi!);
           initialCalories = userDoc['initialCalories'];
-          _remainingCalories = userDoc['remainingCalories'] ?? widget.remainingCalories;
+          _remainingCalories = userDoc['initialCalories'] ?? widget.remainingCalories;
           _progressNotifier.value = _calculateProgress(_remainingCalories);
         });
         print("This is the current user email: ${userDoc['email']}");
@@ -507,7 +509,7 @@ class _HomeViewState extends State<HomeView> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "BMI : ${bmi}",
+                                "BMI : ${double.parse(bmi!.toStringAsFixed(2))}",
                                 style: TextStyle(
                                     color: TColor.white,
                                     fontSize: 14,

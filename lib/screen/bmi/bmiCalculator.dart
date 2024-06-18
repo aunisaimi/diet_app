@@ -266,7 +266,7 @@ class _BMICalculatorState extends State<BMICalculator> {
                   SizedBox(height: media.width * 0.05),
                   if (bmi != null)
                     Text(
-                      'Your BMI: ${bmi!.toStringAsFixed(2)}',
+                      'Your BMI: ${double.parse(bmi!.toStringAsFixed(2))}',
                       style: const TextStyle(
                           color: Colors.indigo,
                           fontSize: 18,
@@ -294,7 +294,7 @@ class _BMICalculatorState extends State<BMICalculator> {
 
                   SizedBox(height: media.width * 0.05),
                   Text(
-                    'BMI Percentage: ${calculateBMIPercentage(bmi ?? 0).toStringAsFixed(2)}%',
+                    'BMI Percentage: ${double.parse(calculateBMIPercentage(bmi ?? 0).toStringAsFixed(2))}%',
                     style: TextStyle(
                       color: TColor.secondaryColor1,
                       fontSize: 18,
