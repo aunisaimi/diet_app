@@ -3,7 +3,9 @@ import 'package:diet_app/common/color_extension.dart';
 import 'package:diet_app/model/meal.dart';
 import 'package:diet_app/screen/meal_planner/dietandfitness/MealDetailScreen.dart';
 import 'package:diet_app/screen/meal_planner/dietandfitness/diet.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class MealPlanner extends StatefulWidget {
   const MealPlanner({Key? key, required dietType}) : super(key: key);
@@ -23,6 +25,42 @@ class _MealPlannerState extends State<MealPlanner> {
   void initState() {
     super.initState();
     _fetchDietTypes();
+    _loadSelectedDiet(); // Load previously selected diet from local storage
+  }
+
+  Future<void> _loadSelectedDiet() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? savedDietId = prefs.getString('selectedDietId');
+    String? savedDietName = prefs.getString('selectedDietName');
+
+    if (savedDietId != null && savedDietName != null) {
+      setState(() {
+        selectedDietId = savedDietId;
+        selectedDietName = savedDietName;
+      });
+
+      // Fetch meals for the loaded selected diet
+      _fetchMeals(selectedDietId, selectedCategory);
+    }
+  }
+
+  Future<void> _saveSelectedDiet(String dietId, String dietName) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selectedDietId', dietId);
+    await prefs.setString('selectedDietName', dietName);
+  }
+
+  Future<void> _updateSelectedDietInFirestore(String dietId, String dietName) async {
+    try {
+      final userId = FirebaseAuth.instance.currentUser!.uid;
+      await FirebaseFirestore.instance.collection('users').doc(userId).update({
+        'selectedDietId': dietId,
+        'selectedDietName': dietName,
+      });
+    } catch (e, stackTrace) {
+      print('Error updating selected diet in Firestore: $e');
+      print(stackTrace);
+    }
   }
 
   Future<void> _fetchDietTypes() async {
@@ -37,8 +75,12 @@ class _MealPlannerState extends State<MealPlanner> {
         }).toList();
 
         if (dietTypes.isNotEmpty) {
-          selectedDietId = dietTypes.first['dietId']!;
-          selectedDietName = dietTypes.first['name']!;
+          if (selectedDietId.isEmpty) {
+            // Set initial selected diet to the first one from Firestore
+            selectedDietId = dietTypes.first['dietId']!;
+            selectedDietName = dietTypes.first['name']!;
+            _saveSelectedDiet(selectedDietId, selectedDietName);
+          }
           _fetchMeals(selectedDietId, selectedCategory);
         }
       });
@@ -104,9 +146,11 @@ class _MealPlannerState extends State<MealPlanner> {
                       selectedDietName = newValue!;
                     });
 
-                    print('Selected dietId: $selectedDietId, dietName: $selectedDietName');
+                    _saveSelectedDiet(selectedDietId, selectedDietName); // Save locally
 
-                    _fetchMeals(selectedDietId, selectedCategory);
+                    _updateSelectedDietInFirestore(selectedDietId, selectedDietName); // Save in Firestore
+
+                    _fetchMeals(selectedDietId, selectedCategory); // Fetch meals for the selected diet
                   },
                   items: dietTypes
                       .map<DropdownMenuItem<String>>(
@@ -193,8 +237,7 @@ class _MealPlannerState extends State<MealPlanner> {
                           children: [
                             const Text(
                               'Calories: ',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold),
+                              style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                             Text('${meal.calories}'),
                           ],
@@ -204,8 +247,7 @@ class _MealPlannerState extends State<MealPlanner> {
                           children: [
                             const Text(
                               'Fat: ',
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold),
+                              style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                             Text('${meal.fat}'),
                           ],
